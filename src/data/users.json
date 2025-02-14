@@ -1,0 +1,13 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "123",
+      "email": "123@mail.ru",
+      "password": "$2b$10$/ezvDd40DlNmp/MmhRweheFO/eCqx2u4u02pDcCPY6zneBrirFTRO",
+      "role": "customer",
+      "createdAt": "2025-02-14T15:01:08.260Z",
+      "updatedAt": "2025-02-14T15:01:08.261Z"
+    }
+  ]
+}

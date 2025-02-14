@@ -1,0 +1,22 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Тестовый товар 1",
+      "description": "Описание тестового товара 1",
+      "price": 1000,
+      "image_preview": "/images/product1.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Тестовый товар 2",
+      "description": "Описание тестового товара 2",
+      "price": 2000,
+      "image_preview": "/images/product2.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+} 
