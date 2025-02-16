@@ -2,14 +2,14 @@
 import Image from 'next/image'
 import { useState } from 'react'
 
-const ImageFallback = ({ src, fallbackSrc = '/placeholder.jpg', alt, ...props }) => {
+const ImageFallback = ({ src, fallbackSrc = '/images/placeholder.jpg', alt, ...props }) => {
     const [imgSrc, setImgSrc] = useState(src || fallbackSrc)
     const [error, setError] = useState(false)
 
     const handleError = () => {
         if (!error) {
             setError(true)
-            setImgSrc('/placeholder.jpg')
+            setImgSrc('/images/placeholder.jpg')
         }
     }
 

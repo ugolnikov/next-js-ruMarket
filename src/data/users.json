@@ -8,6 +8,15 @@
       "role": "customer",
       "createdAt": "2025-02-14T15:01:08.260Z",
       "updatedAt": "2025-02-14T15:01:08.261Z"
+    },
+    {
+      "id": 2,
+      "name": "user",
+      "email": "user@example.com",
+      "password": "$2b$10$8KUd3YUwbBRHZBxMc5sI4OK8VaSGsOIoYsdgTNvYE/ZsRpw9bbCRq",
+      "role": "customer",
+      "createdAt": "2025-02-16T13:49:26.306Z",
+      "updatedAt": "2025-02-16T13:49:26.306Z"
     }
   ]
 }

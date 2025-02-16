@@ -2,21 +2,102 @@
   "products": [
     {
       "id": 1,
-      "name": "Тестовый товар 1",
-      "description": "Описание тестового товара 1",
-      "price": 1000,
-      "image_preview": "/images/product1.jpg",
+      "name": "Продам PS5, 1TB",
+      "description": "PS5 в идеальном состоянии\nВ придачу 2 джойстика (белый и розовый)\n3 игры на диске\nОтдаю все вместе, полный набор\nКоробка, приставка, диски, шнуры",
+      "price": 49900,
+      "image_preview": "/images/ps5.jpg",
       "created_at": "2024-01-01T00:00:00.000Z",
       "updated_at": "2024-01-01T00:00:00.000Z"
     },
     {
       "id": 2,
-      "name": "Тестовый товар 2",
-      "description": "Описание тестового товара 2",
-      "price": 2000,
-      "image_preview": "/images/product2.jpg",
+      "name": "Ноутбук ASUS ROG Strix G15",
+      "description": "Игровой ноутбук с процессором AMD Ryzen 7, 16 ГБ ОЗУ, видеокарта NVIDIA RTX 3060, SSD 512 ГБ, экран 15.6 дюймов, 144 Гц",
+      "price": 89900,
+      "image_preview": "/images/asus-rog.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Монитор Dell UltraSharp 27",
+      "description": "27-дюймовый монитор с разрешением 4K, IPS-панель, цветопередача 99% sRGB, порты HDMI и DisplayPort",
+      "price": 34900,
+      "image_preview": "/images/dell-monitor.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "name": "Клавиатура Logitech G Pro X",
+      "description": "Механическая игровая клавиатура с RGB-подсветкой, переключатели GX Blue, съемный кабель, компактный дизайн",
+      "price": 12900,
+      "image_preview": "/images/logitech-keyboard.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "name": "Мышь Razer DeathAdder V2",
+      "description": "Игровая мышь с оптическим сенсором 20 000 DPI, 8 программируемых кнопок, RGB-подсветка, эргономичный дизайн",
+      "price": 7900,
+      "image_preview": "/images/razer-mouse.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "name": "Видеокарта NVIDIA GeForce RTX 3080",
+      "description": "10 ГБ GDDR6X, 8704 ядра CUDA, поддержка трассировки лучей, охлаждение с тремя вентиляторами",
+      "price": 89900,
+      "image_preview": "/images/rtx-3080.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 7,
+      "name": "Процессор AMD Ryzen 9 5900X",
+      "description": "12 ядер, 24 потока, базовая частота 3.7 ГГц, максимальная частота 4.8 ГГц, кэш 70 МБ, поддержка PCIe 4.0",
+      "price": 45900,
+      "image_preview": "/images/ryzen-9.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 8,
+      "name": "SSD Samsung 970 EVO Plus 1TB",
+      "description": "NVMe SSD, скорость чтения до 3500 МБ/с, скорость записи до 3300 МБ/с, гарантия 5 лет",
+      "price": 12900,
+      "image_preview": "/images/samsung-ssd.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 9,
+      "name": "Материнская плата ASUS ROG Strix X570-E",
+      "description": "Сокет AM4, поддержка PCIe 4.0, Wi-Fi 6, 2.5 Гбит Ethernet, RGB-подсветка, 4 слота DDR4",
+      "price": 27900,
+      "image_preview": "/images/asus-motherboard.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 10,
+      "name": "Колонки Logitech G560",
+      "description": "2.1-канальная акустическая система с RGB-подсветкой, Bluetooth, USB-подключение, мощность 240 Вт",
+      "price": 19900,
+      "image_preview": "/images/logitech-speakers.jpg",
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 11,
+      "name": "Игровой кресло DXRacer Master",
+      "description": "Эргономичное игровое кресло с поддержкой спины, регулируемые подлокотники, материал из экокожи, максимальная нагрузка 150 кг",
+      "price": 45900,
+      "image_preview": "/images/dxracer-chair.jpg",
       "created_at": "2024-01-01T00:00:00.000Z",
       "updated_at": "2024-01-01T00:00:00.000Z"
     }
   ]
-} 
+}

@@ -32,7 +32,7 @@ const Navigation = ({ user }) => {
         }
     }, [cart])
 
-    if (isLoading) return <Loader />
+    // if (isLoading) return <Loader />
 
     return (
         <nav className="bg-white border-b border-gray-100">

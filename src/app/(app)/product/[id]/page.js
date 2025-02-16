@@ -97,7 +97,7 @@ export default function Page({ params }) {
                             className="rounded-lg"
                         />
                     </div>
-                    <div className="flex flex-col justify-between">
+                    <div className="flex flex-col justify-evenly">
                         <div>
                             <h1 className="text-3xl font-bold mb-4">{product.data.name}</h1>
                             <p className="text-gray-600 mb-6 text-lg">{product.data.description}</p>
@@ -113,7 +113,7 @@ export default function Page({ params }) {
                                 <Button
                                     onClick={handleAddToCart}
                                     disabled={addingToCart}
-                                    className={`w-full py-3 ${
+                                    className={`w-full py-3 rounded ${
                                         addToCartSuccess
                                             ? 'bg-green-500 hover:bg-green-600'
                                             : 'bg-indigo-600 hover:bg-indigo-700'

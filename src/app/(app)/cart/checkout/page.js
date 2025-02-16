@@ -11,6 +11,7 @@ const Checkout = () => {
     const router = useRouter()
     const { user, cart, isLoading } = useAuth()
     const { clearCart } = useCart()
+    const [totalPrice, setTotalPrice] = useState(0)
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -22,7 +23,7 @@ const Checkout = () => {
     const [errors, setErrors] = useState({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [success, setSuccess] = useState('')
-
+    console.log(cart)
     // Подставляем данные пользователя при загрузке
     useEffect(() => {
         if (user) {
@@ -35,6 +36,15 @@ const Checkout = () => {
             }))
         }
     }, [user])
+    useEffect(() => {
+        if (cart?.items && Array.isArray(cart.items)) {
+            const total = cart.items.reduce(
+                (sum, item) => sum + item.product.price * item.quantity,
+                0,
+            )
+            setTotalPrice(total)
+        }
+    }, [cart])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -230,7 +240,7 @@ const Checkout = () => {
                 <div className="border-t pt-4">
                     <div className="flex justify-between items-center text-lg font-bold">
                         <span>Итого:</span>
-                        <span>{cart?.total || 0} ₽</span>
+                        <span>{totalPrice} ₽</span>
                     </div>
                 </div>
 

@@ -22,6 +22,25 @@
           "quantity": 1
         }
       ]
+    },
+    {
+      "userId": 2,
+      "items": [
+        {
+          "id": 1739713809473,
+          "product_id": 1,
+          "product": {
+            "id": 1,
+            "name": "Тестовый товар 1",
+            "description": "Описание тестового товара 1",
+            "price": 1000,
+            "image_preview": "/images/product1.jpg",
+            "created_at": "2024-01-01T00:00:00.000Z",
+            "updated_at": "2024-01-01T00:00:00.000Z"
+          },
+          "quantity": 3
+        }
+      ]
     }
   ]
 }

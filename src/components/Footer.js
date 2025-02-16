@@ -6,7 +6,7 @@ const Footer = () => {
                     <div className="mb-6 md:mb-0">
                         <a href="/" className="flex items-center">
                             <span className="self-center text-2xl font-semibold whitespace-nowrap text-white">
-                                Маркетплейс
+                                Маркетплейс «ruMarket»
                             </span>
                         </a>
                     </div>

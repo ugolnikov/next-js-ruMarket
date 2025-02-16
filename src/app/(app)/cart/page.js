@@ -17,6 +17,7 @@ const CartPage = () => {
 
     
     const router = useRouter()
+    
     useEffect(() => {
         if (!user || user.role !== 'customer') {
             router.push('/login')

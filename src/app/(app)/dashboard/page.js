@@ -25,37 +25,33 @@ const Dashboard = () => {
 
     // Создаем функцию debounce для поиска
     const debouncedSearch = useCallback(
-        debounce((term) => {
-            if (!useOrdersOrders) return
-            
+        debounce((term, orders) => {
+            if (!orders) return;
+
             if (!term.trim()) {
-                setFilteredOrders(useOrdersOrders)
-                return
+                setFilteredOrders(orders);
+                return;
             }
 
-            const filtered = useOrdersOrders.filter(order => 
+            const filtered = orders.filter(order => 
                 order.order_number.toLowerCase().includes(term.toLowerCase()) ||
                 order.total_amount.toString().includes(term)
-            )
-            setFilteredOrders(filtered)
+            );
+            setFilteredOrders(filtered);
         }, 300),
-        [useOrdersOrders]
-    )
+        []
+    );
 
-    // Обработчик изменения поля поиска
-    const handleSearchChange = (e) => {
-        e.preventDefault() // Предотвращаем обновление страницы
-        const value = e.target.value
-        setSearchTerm(value)
-        debouncedSearch(value)
-    }
-
-    // Инициализация отфильтрованных заказов
     useEffect(() => {
         if (useOrdersOrders) {
-            setFilteredOrders(useOrdersOrders)
+            debouncedSearch(searchTerm, useOrdersOrders);
         }
-    }, [useOrdersOrders])
+    }, [searchTerm, useOrdersOrders, debouncedSearch]);
+
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+    };
 
     const getStatusColor = status => {
         switch (status) {
