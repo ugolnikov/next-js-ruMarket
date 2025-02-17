@@ -128,6 +128,7 @@ export default function Page({ params }) {
                 return status
         }
     }
+    console.log(order)
 
     return (
         <div className="min-h-screen bg-gray-100 py-8">
@@ -217,8 +218,8 @@ export default function Page({ params }) {
                                         className="flex items-center border rounded-lg p-4 hover:bg-gray-50">
                                         <div className="flex-shrink-0 w-20 h-20 mr-4">
                                             <ImageWithLoader
-                                                src={item.product.image_preview}
-                                                alt={item.product.name}
+                                                // src={item.product.image_preview}
+                                                // alt={item.product.name}
                                                 width={80}
                                                 height={80}
                                                 className="w-full h-full object-cover rounded"
@@ -226,14 +227,14 @@ export default function Page({ params }) {
                                         </div>
                                         <div className="flex-grow">
                                             <h3 className="font-medium text-gray-900">
-                                                {item.product.name}
+                                                {/* {item.product.name} */}
                                             </h3>
                                             <p className="text-gray-600">
                                                 Количество: {item.quantity}
                                             </p>
                                             <p className="text-gray-600">
                                                 Цена за единицу:{' '}
-                                                {item.product.price} ₽
+                                                {/* {item.product.price} ₽ */}
                                             </p>
                                         </div>
                                         <div className="text-right">
@@ -249,8 +250,8 @@ export default function Page({ params }) {
                                                 )}
                                             </p>
                                             <p className="font-medium text-gray-900">
-                                                {item.product.price *
-                                                    item.quantity}{' '}
+                                                {/* {item.product.price *
+                                                    item.quantity}{' '} */}
                                                 ₽
                                             </p>
                                         </div>

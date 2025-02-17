@@ -14,6 +14,7 @@ const RootLayout = ({ children }) => {
         <html lang="ru" className={nunitoFont.className}>
             <head>
             <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+            <title>ruMarket</title>
             </head>
             <body className="antialiased">
                 <Providers>

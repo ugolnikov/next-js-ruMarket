@@ -17,6 +17,15 @@
       "role": "customer",
       "createdAt": "2025-02-16T13:49:26.306Z",
       "updatedAt": "2025-02-16T13:49:26.306Z"
+    },
+    {
+      "id": 3,
+      "name": "seller",
+      "email": "seller@example.com",
+      "password": "$2b$10$8KUd3YUwbBRHZBxMc5sI4OK8VaSGsOIoYsdgTNvYE/ZsRpw9bbCRq",
+      "role": "seller",
+      "createdAt": "2025-02-16T13:49:26.306Z",
+      "updatedAt": "2025-02-16T13:49:26.306Z"
     }
   ]
 }

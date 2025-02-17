@@ -20,6 +20,7 @@ const loadProduct = async (id) => {
     }
 }
 
+
 export default function Page({ params }) {
     const { user } = useAuth()
     const { addToCart } = useCart()
@@ -71,6 +72,8 @@ export default function Page({ params }) {
         fetchProduct()
     }, [id])
 
+   
+
     if (isLoading) return <Loader />
     if (notFound)
         return (
@@ -83,7 +86,8 @@ export default function Page({ params }) {
         )
     if (isError) return <p>Ошибка загрузки товара</p>
     if (!product) return <p>Товар не найден</p>
-
+    const parsed_description = product.data.description.split("\n")
+    console.log(parsed_description)
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -100,7 +104,11 @@ export default function Page({ params }) {
                     <div className="flex flex-col justify-evenly">
                         <div>
                             <h1 className="text-3xl font-bold mb-4">{product.data.name}</h1>
-                            <p className="text-gray-600 mb-6 text-lg">{product.data.description}</p>
+                            <div className="text-gray-600 mb-6 text-lg">
+                                {parsed_description.map((element, index) => (
+                                    <p key={index} className="mb-2">{element}</p>
+                                ))}
+                            </div>
                             <div className="flex items-center mb-6">
                                 <span className="text-3xl font-bold text-indigo-600">
                                     {product.data.price} ₽
