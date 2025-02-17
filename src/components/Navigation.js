@@ -42,8 +42,9 @@ const Navigation = ({ user }) => {
                     <div className="flex">
                         {/* Logo */}
                         <div className="flex-shrink-0 flex items-center">
-                            <Link href="/">
-                                <ApplicationLogo className="block h-10 w-auto fill-current text-gray-600" />
+                            <Link href="/" className='flex flex-row items-center gap-2'>
+                                <ApplicationLogo className="block h-10 w-auto fill-current text-[#4438ca]" />
+                                <h1>ruMarket</h1>
                             </Link>
                         </div>
 
