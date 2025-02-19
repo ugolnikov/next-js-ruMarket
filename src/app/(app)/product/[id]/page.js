@@ -89,7 +89,7 @@ export default function Page({ params }) {
     const parsed_description = product.description?.split("\n") || []
     console.log(parsed_description)
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 my-2">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
                     <div className="relative w-full" style={{ height: '500px' }}>
