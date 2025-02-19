@@ -1,392 +1,319 @@
-import fs from 'fs/promises'
-import path from 'path'
-import bcrypt from 'bcryptjs'
+import { PrismaClient } from '@prisma/client'
 
-const DATA_DIR = path.join(process.cwd(), 'src/data')
+let prisma
 
-class Database {
-  constructor() {
-    this.cache = new Map()
-    this.usersPath = path.join(process.cwd(), 'src/data/users.json')
-    this.cartsPath = path.join(process.cwd(), 'src/data/carts.json')
-    this.productsPath = path.join(process.cwd(), 'src/data/products.json')
-    this.ordersPath = path.join(process.cwd(), 'src/data/orders.json')
-  }
-
-  async readFile(filename) {
-    if (this.cache.has(filename)) {
-      return this.cache.get(filename)
+if (process.env.NODE_ENV === 'production') {
+    prisma = new PrismaClient()
+} else {
+    if (!global.prisma) {
+        global.prisma = new PrismaClient()
     }
-
-    const filePath = path.join(DATA_DIR, filename)
-    const data = JSON.parse(await fs.readFile(filePath, 'utf8'))
-    this.cache.set(filename, data)
-    return data
-  }
-
-  async writeFile(filename, data) {
-    const filePath = path.join(DATA_DIR, filename)
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2))
-    this.cache.set(filename, data)
-  }
-
-  // Users
-  async findUser(email) {
-    const { users } = await this.readFile('users.json')
-    return users.find(user => user.email === email)
-  }
-
-  async findUserById(id) {
-    const { users } = await this.readFile('users.json')
-    return users.find(user => user.id === id)
-  }
-
-  async createUser(userData) {
-    const { users = [] } = await this.readFile('users.json')
-    
-    // Генерируем ID для нового пользователя
-    const id = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1
-
-    const newUser = {
-        id,
-        ...userData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    }
-
-    users.push(newUser)
-    await this.writeFile('users.json', { users })
-
-    // Возвращаем пользователя без пароля
-    const { password, ...userWithoutPassword } = newUser
-    return userWithoutPassword
-  }
-
-  // Products
-  async findProducts({ page = 1, limit = 10, search = '' }) {
-    const { products } = await this.readFile('products.json')
-    let filtered = products
-
-    if (search) {
-      const searchLower = search.toLowerCase()
-      filtered = products.filter(product => 
-        product.name.toLowerCase().includes(searchLower) ||
-        product.description.toLowerCase().includes(searchLower)
-      )
-    }
-
-    const total = filtered.length
-    const start = (page - 1) * limit
-    const items = filtered.slice(start, start + limit)
-
-    return {
-      data: items,
-      meta: {
-        total,
-        page,
-        last_page: Math.ceil(total / limit)
-      }
-    }
-  }
-
-  async findProductById(id) {
-    const { products = [] } = await this.readFile('products.json')
-    const product = products.find(p => p.id === id)
-    
-    if (product && product.image_preview && !product.image_preview.startsWith('/')) {
-        product.image_preview = `/${product.image_preview}`
-    }
-    
-    return product
-  }
-
-  async getProducts({ page = 1, search = '', limit = 9 } = {}) {
-    const { products = [] } = await this.readFile('products.json')
-    
-    let filteredProducts = products
-    if (search) {
-        const searchLower = search.toLowerCase()
-        filteredProducts = products.filter(product => 
-            product.name.toLowerCase().includes(searchLower) ||
-            product.description.toLowerCase().includes(searchLower)
-        )
-    }
-
-    const start = (page - 1) * limit
-    const paginatedProducts = filteredProducts.slice(start, start + limit)
-
-    return {
-        products: paginatedProducts,
-        total: filteredProducts.length
-    }
-  }
-
-  async createProduct(data) {
-    const { products } = await this.readFile('products.json')
-    
-    const newProduct = {
-        id: Date.now(),
-        ...data,
-        is_published: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    }
-
-    products.push(newProduct)
-    await this.writeFile('products.json', { products })
-    
-    return newProduct
-  }
-
-  async updateProduct(id, data) {
-    const { products } = await this.readFile('products.json')
-    const index = products.findIndex(p => p.id === id)
-    
-    if (index === -1) return null
-
-    const updatedProduct = {
-        ...products[index],
-        ...data,
-        updatedAt: new Date().toISOString()
-    }
-
-    products[index] = updatedProduct
-    await this.writeFile('products.json', { products })
-    
-    return updatedProduct
-  }
-
-  async deleteProduct(id) {
-    const { products } = await this.readFile('products.json')
-    const index = products.findIndex(p => p.id === id)
-    
-    if (index === -1) return false
-
-    products.splice(index, 1)
-    await this.writeFile('products.json', { products })
-    
-    return true
-  }
-
-  // Cart
-  async getCart(userId) {
-    try {
-      const cartsData = await fs.readFile(this.cartsPath, 'utf8')
-      const carts = JSON.parse(cartsData)
-      return carts.carts.find(cart => cart.userId === userId) || { userId, items: [] }
-    } catch (error) {
-      console.error('Error getting cart:', error)
-      return { userId, items: [] }
-    }
-  }
-
-  async getProduct(productId) {
-    try {
-      const productsData = await fs.readFile(this.productsPath, 'utf8')
-      const products = JSON.parse(productsData)
-      return products.products.find(product => product.id === productId) || null
-    } catch (error) {
-      console.error('Error getting product:', error)
-      return null
-    }
-  }
-
-  async addToCart(userId, productId, quantity) {
-    try {
-      const cartsData = await fs.readFile(this.cartsPath, 'utf8')
-      let carts = JSON.parse(cartsData)
-      
-      // Находим корзину пользователя или создаем новую
-      let userCartIndex = carts.carts.findIndex(cart => cart.userId === userId)
-      if (userCartIndex === -1) {
-        carts.carts.push({
-          userId,
-          items: []
-        })
-        userCartIndex = carts.carts.length - 1
-      }
-
-      // Получаем информацию о продукте
-      const product = await this.getProduct(productId)
-      if (!product) {
-        throw new Error('Product not found')
-      }
-
-      // Проверяем, есть ли уже такой товар в корзине
-      const existingItemIndex = carts.carts[userCartIndex].items.findIndex(
-        item => item.product_id === productId
-      )
-
-      if (existingItemIndex !== -1) {
-        // Если товар уже есть, увеличиваем количество
-        carts.carts[userCartIndex].items[existingItemIndex].quantity += quantity
-      } else {
-        // Если товара нет, добавляем новый
-        carts.carts[userCartIndex].items.push({
-          id: Date.now(),
-          product_id: productId,
-          product: product,
-          quantity: quantity
-        })
-      }
-
-      // Сохраняем обновленные данные
-      await fs.writeFile(this.cartsPath, JSON.stringify(carts, null, 2))
-      
-      // Возвращаем обновленную корзину пользователя
-      return carts.carts[userCartIndex]
-    } catch (error) {
-      console.error('Error adding to cart:', error)
-      throw error
-    }
-  }
-
-  async updateCartItem(userId, itemId, quantity) {
-    const { cartItems } = await this.readFile('cart.json')
-    const index = cartItems.findIndex(
-        item => item.id === itemId && item.userId === userId
-    )
-
-    if (index === -1) throw new Error('Cart item not found')
-
-    cartItems[index].quantity = quantity
-    cartItems[index].updatedAt = new Date().toISOString()
-
-    await this.writeFile('cart.json', { cartItems })
-    return this.getCart(userId)
-  }
-
-  async removeFromCart(userId, itemId) {
-    const { cartItems } = await this.readFile('cart.json')
-    const index = cartItems.findIndex(
-        item => item.id === itemId && item.userId === userId
-    )
-
-    if (index === -1) throw new Error('Cart item not found')
-
-    cartItems.splice(index, 1)
-    await this.writeFile('cart.json', { cartItems })
-    return this.getCart(userId)
-  }
-
-  // Orders
-  async createOrder(userId, orderData) {
-    try {
-        const ordersData = await fs.readFile(this.ordersPath, 'utf8')
-        const orders = JSON.parse(ordersData)
-        
-        const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`
-        
-        const newOrder = {
-            id: Date.now(),
-            order_number: orderNumber,
-            user_id: userId,
-            status: 'pending',
-            items: orderData.items.map(item => ({
-                product_id: item.product_id,
-                quantity: item.quantity,
-                price: item.price
-            })),
-            shipping_address: orderData.shipping_address,
-            total_amount: orderData.items.reduce(
-                (sum, item) => sum + (item.price * item.quantity),
-                0
-            ),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        }
-
-        orders.orders.push(newOrder)
-        await fs.writeFile(this.ordersPath, JSON.stringify(orders, null, 2))
-        
-        // Очищаем корзину пользователя после создания заказа
-        await this.clearCart(userId)
-        
-        return newOrder
-    } catch (error) {
-        console.error('Error creating order:', error)
-        throw error
-    }
-  }
-
-  async getUserOrders(userId) {
-    try {
-        const ordersData = await fs.readFile(this.ordersPath, 'utf8')
-        const orders = JSON.parse(ordersData)
-        const userOrders = orders.orders.filter(order => order.user_id === userId)
-        return userOrders
-    } catch (error) {
-        console.error('Error getting user orders:', error)
-        if (error.code === 'ENOENT') {
-            // Если файл не существует, создаем его с пустым массивом заказов
-            await fs.writeFile(this.ordersPath, JSON.stringify({ orders: [] }))
-            return []
-        }
-        throw error
-    }
-  }
-
-  async getOrderByNumber(orderNumber) {
-    try {
-      const ordersData = await fs.readFile(this.ordersPath, 'utf8')
-      const orders = JSON.parse(ordersData)
-      return orders.orders.find(order => order.order_number === orderNumber)
-    } catch (error) {
-      console.error('Error getting order by number:', error)
-      throw error
-    }
-  }
-
-  async getOrder(orderId) {
-    try {
-      const ordersData = await fs.readFile(this.ordersPath, 'utf8')
-      const orders = JSON.parse(ordersData)
-      return orders.orders.find(order => order.id === orderId)
-    } catch (error) {
-      console.error('Error getting order:', error)
-      throw error
-    }
-  }
-
-  async updateOrderStatus(orderId, status) {
-    try {
-      const ordersData = await fs.readFile(this.ordersPath, 'utf8')
-      const orders = JSON.parse(ordersData)
-      
-      const orderIndex = orders.orders.findIndex(order => order.id === orderId)
-      if (orderIndex === -1) {
-        throw new Error('Order not found')
-      }
-
-      orders.orders[orderIndex].status = status
-      orders.orders[orderIndex].updated_at = new Date().toISOString()
-
-      await fs.writeFile(this.ordersPath, JSON.stringify(orders, null, 2))
-      return orders.orders[orderIndex]
-    } catch (error) {
-      console.error('Error updating order status:', error)
-      throw error
-    }
-  }
-
-  async clearCart(userId) {
-    try {
-        const cartsData = await fs.readFile(this.cartsPath, 'utf8')
-        const carts = JSON.parse(cartsData)
-        
-        const userCartIndex = carts.carts.findIndex(cart => cart.user_id === userId)
-        
-        if (userCartIndex !== -1) {
-            carts.carts[userCartIndex].items = []
-            await fs.writeFile(this.cartsPath, JSON.stringify(carts, null, 2))
-        }
-        
-        return true
-    } catch (error) {
-        console.error('Error clearing cart:', error)
-        throw error
-    }
-  }
+    prisma = global.prisma
 }
 
-export const db = new Database() 
+// Ensure prisma is initialized
+if (!prisma) {
+    prisma = new PrismaClient()
+}
+
+export { prisma }
+
+export const db = {
+  async findUser(email) {
+    return await prisma.user.findUnique({
+      where: { email }
+    })
+  },
+
+  async getCart(userId) {
+    return await prisma.cart_items.findMany({
+      where: { user_id: userId },
+      include: {
+        products: true
+      }
+    })
+  },
+
+  async addToCart(userId, productId, quantity) {
+    const existingItem = await prisma.cart_items.findFirst({
+      where: {
+        user_id: userId,
+        product_id: productId
+      }
+    })
+
+    if (existingItem) {
+      return await prisma.cart_items.update({
+        where: { id: existingItem.id },
+        data: {
+          quantity: existingItem.quantity + quantity
+        },
+        include: {
+          products: true
+        }
+      })
+    }
+
+    return await prisma.cart_items.create({
+      data: {
+        user_id: userId,
+        product_id: productId,
+        quantity
+      },
+      include: {
+        products: true
+      }
+    })
+  },
+
+  async updateCartItemQuantity(userId, cartItemId, quantity) {
+    return await prisma.cart_items.update({
+      where: {
+        id: cartItemId,
+        user_id: userId
+      },
+      data: { quantity },
+      include: {
+        products: true
+      }
+    })
+  },
+
+  async removeFromCart(userId, cartItemId) {
+    return await prisma.cart_items.delete({
+      where: {
+        id: cartItemId,
+        user_id: userId
+      }
+    })
+  },
+
+  async clearCart(userId) {
+    return await prisma.cart_items.deleteMany({
+      where: { user_id: userId }
+    })
+  },
+
+  async getOrder(orderNumber) {
+    return await prisma.order.findUnique({
+      where: {
+        orderNumber: orderNumber
+      },
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        }
+      }
+    })
+  },
+
+  async getUserOrders(userId) {
+    return await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+  },
+
+  async createOrder(userId, orderData) {
+    const { items, shipping_address } = orderData
+
+    // Calculate total amount and convert to Decimal
+    const totalAmount = items.reduce((sum, item) => {
+      return sum + (Number(item.price) * Number(item.quantity))
+    }, 0)
+
+    // Generate a unique order number: ORD-YYYYMMDD-XXXX
+    const date = new Date()
+    const dateStr = date.getFullYear().toString() +
+                   (date.getMonth() + 1).toString().padStart(2, '0') +
+                   date.getDate().toString().padStart(2, '0')
+    
+    // Get the latest order number for today to increment
+    const latestOrder = await prisma.order.findFirst({
+      where: {
+        orderNumber: {
+          startsWith: `ORD-${dateStr}`
+        }
+      },
+      orderBy: {
+        orderNumber: 'desc'
+      }
+    })
+
+    let sequence = 1
+    if (latestOrder) {
+      const lastSequence = parseInt(latestOrder.orderNumber.split('-')[2])
+      sequence = lastSequence + 1
+    }
+
+    const orderNumber = `ORD-${dateStr}-${sequence.toString().padStart(4, '0')}`
+
+    return await prisma.order.create({
+      data: {
+        userId: BigInt(userId),
+        orderNumber,
+        status: 'pending',
+        email: shipping_address.email,
+        phone: shipping_address.phone,
+        address: shipping_address.address,
+        fullName: shipping_address.fullName,
+        totalAmount: totalAmount.toFixed(2),
+        items: {
+          create: items.map(item => ({
+            productId: BigInt(item.product_id),
+            quantity: Number(item.quantity),
+            price: Number(item.price).toFixed(2)
+          }))
+        }
+      },
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        }
+      }
+    })
+  },
+
+  async updateOrderStatus(id, status) {
+    return await prisma.order.update({
+      where: { id },
+      data: { status },
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        }
+      }
+    })
+  },
+
+  async findUserById(id) {
+    return await prisma.user.findUnique({
+      where: { id }
+    })
+  },
+
+  async createUser(data) {
+    return await prisma.user.create({
+      data: {
+        ...data,
+        role: 'customer'
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true
+      }
+    })
+  },
+
+  async updateUserRole(id) {
+    const user = await prisma.user.findUnique({
+      where: { id }
+    })
+
+    if (!user) throw new Error('User not found')
+
+    return await prisma.user.update({
+      where: { id },
+      data: {
+        role: user.role === 'customer' ? 'seller' : 'customer'
+      }
+    })
+  },
+
+  async getProducts({ page = 1, search = '', limit = 9 }) {
+    const skip = (page - 1) * limit
+
+    const where = {
+      is_published: true,
+      ...(search ? {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } }
+        ]
+      } : {})
+    }
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          seller: {
+            select: {
+              id: true,
+              name: true,
+              company_name: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }),
+      prisma.product.count({ where })
+    ])
+
+    return {
+      products,
+      total
+    }
+  },
+
+  async getProduct(id) {
+    return await prisma.product.findUnique({
+      where: { id },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            company_name: true,
+            phone: true,
+            email: true
+          }
+        }
+      }
+    })
+  },
+
+  async updateProduct(id, data) {
+    return await prisma.product.update({
+      where: { id },
+      data,
+      include: {
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            company_name: true
+          }
+        }
+      }
+    })
+  },
+
+  async deleteProduct(id) {
+    return await prisma.product.delete({
+      where: { id }
+    })
+  }
+} 

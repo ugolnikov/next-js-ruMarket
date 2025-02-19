@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/auth'
+import { useCart } from '@/hooks/cart'
 import Loader from '@/components/Loader'
 import Button from '@/components/Button'
 import { useRouter } from 'next/navigation'
@@ -10,11 +11,11 @@ import Header from '@/components/Header'
 import Image from 'next/image'
 
 const CartPage = () => {
-    const { cart, mutateCart, user } = useAuth()
+    const { user } = useAuth()
+    const { cart, mutateCart, removeFromCart } = useCart()
 
     const [loading, setLoading] = useState(false)
     const [totalPrice, setTotalPrice] = useState(0)
-
     
     const router = useRouter()
     
@@ -37,8 +38,7 @@ const CartPage = () => {
     const handleRemoveItem = async cartId => {
         setLoading(true)
         try {
-            await axios.delete(`/api/cart/${cartId}`)
-            mutateCart()
+            await removeFromCart(cartId)
         } catch (error) {
             console.error('Ошибка при удалении товара из корзины:', error)
         } finally {
@@ -98,26 +98,23 @@ const CartPage = () => {
                                 <p className="font-semibold">Количество:</p>
                                 <p>{item.quantity}</p>
                             </div>
-                            <div className="w-full md:w-1/5">
-                                <p className="font-semibold">Сумма:</p>
-                                <p>{item.product.price * item.quantity}₽</p>
-                            </div>
-                            <div className="w-full md:w-auto mt-4 md:mt-0">
+                            <div className="w-full md:w-1/5 flex justify-center">
                                 <Button
                                     onClick={() => handleRemoveItem(item.id)}
-                                    className="rounded">
+                                    className="bg-red-500 hover:bg-red-600 rounded">
                                     Удалить
                                 </Button>
                             </div>
                         </div>
                     )
                 })}
-                <div className="flex flex-col sm:flex-row justify-between items-center mt-6 px-6 py-4 bg-[#f8f8f8]">
-                    <h2 className="text-xl font-bold">
-                        Общая сумма: {totalPrice}₽
-                    </h2>
+                <div className="flex justify-between items-center p-4">
+                    <div>
+                        <p className="font-semibold">Итого:</p>
+                        <p>{totalPrice}₽</p>
+                    </div>
                     <Button onClick={handleCheckout} className="rounded">
-                        Перейти к оформлению
+                        Оформить заказ
                     </Button>
                 </div>
             </div>

@@ -1,5 +1,13 @@
-module.exports = {
-    content: ['./src/**/*.{js,jsx,ts,tsx}'],
-    theme: {},
-    plugins: [require('@tailwindcss/forms')],
+export default {
+    content: [
+        './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+        './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+        './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    ],
+    theme: {
+        extend: {},
+    },
+    plugins: [
+        require('@tailwindcss/forms'),
+    ],
 }

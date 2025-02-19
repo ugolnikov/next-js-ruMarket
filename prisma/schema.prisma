@@ -8,77 +8,98 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique
-  password      String
-  name          String?
-  role          String    @default("customer")
-  phone         String?
-  company_name  String?
-  inn           String?   @unique
-  address       String?
-  logo          String?
-  orders        Order[]
-  cart          Cart[]
-  products      Product[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           BigInt       @id @default(autoincrement())
+  email        String       @unique @db.VarChar(255)
+  password     String       @db.VarChar(255)
+  name         String?      @db.VarChar(255)
+  role         user_role?   @default(customer)
+  phone        String?      @db.VarChar(255)
+  company_name String?      @db.VarChar(255)
+  inn          String?      @unique @db.VarChar(255)
+  address      String?
+  logo         String?      @db.VarChar(255)
+  is_verify    Boolean?     @default(false)
+  createdAt    DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  cart_items   cart_items[]
+  orders       Order[]
+  products     Product[]
+
+  @@map("users")
 }
 
 model Product {
-  id               Int         @id @default(autoincrement())
-  name             String
+  id               BigInt       @id @default(autoincrement())
+  name             String       @db.VarChar(255)
   description      String?
-  full_description String?     @db.Text
-  price           Float
-  unit            String      @default("шт")
-  image_preview   String?
-  is_published    Boolean     @default(true)
-  sellerId        Int
-  seller          User        @relation(fields: [sellerId], references: [id])
-  orderItems      OrderItem[]
-  cartItems       Cart[]
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  full_description String?
+  price            Decimal      @db.Decimal(10, 2)
+  unit             String?      @default("шт") @db.VarChar(50)
+  image_preview    String?      @db.VarChar(255)
+  is_published     Boolean?     @default(true)
+  seller_id        BigInt?      @map("seller_id")
+  createdAt        DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  cart_items       cart_items[]
+  order_items      OrderItem[]
+  seller           User?        @relation(fields: [seller_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("products")
 }
 
 model Order {
-  id          Int         @id @default(autoincrement())
-  orderNumber String      @unique
-  userId      Int
-  user        User        @relation(fields: [userId], references: [id])
-  status      String      @default("pending")
-  email       String
-  phone       String
+  id          BigInt        @id @default(autoincrement())
+  orderNumber String        @unique @map("order_number") @db.VarChar(255)
+  userId      BigInt?       @map("user_id")
+  status      order_status? @default(pending)
+  email       String        @db.VarChar(255)
+  phone       String        @db.VarChar(255)
   address     String
-  fullName    String
+  fullName    String        @map("full_name") @db.VarChar(255)
+  totalAmount Decimal       @map("total_amount") @db.Decimal(10, 2)
+  createdAt   DateTime?     @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime?     @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt @map("updated_at") @db.Timestamptz(6)
   items       OrderItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  user        User?         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("orders")
 }
 
 model OrderItem {
-  id         Int      @id @default(autoincrement())
-  orderId    Int
-  order      Order    @relation(fields: [orderId], references: [id])
-  productId  Int
-  product    Product  @relation(fields: [productId], references: [id])
-  sellerId   Int
-  quantity   Int
-  price      Float
-  total      Float
-  is_send    Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        BigInt    @id @default(autoincrement())
+  orderId   BigInt?   @map("order_id")
+  productId BigInt?   @map("product_id")
+  quantity  Int
+  price     Decimal   @db.Decimal(10, 2)
+  is_send   Boolean?  @default(false)
+  createdAt DateTime? @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime? @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  order     Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  product   Product?  @relation(fields: [productId], references: [id], onUpdate: NoAction)
+
+  @@map("order_items")
 }
 
-model Cart {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  productId Int
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-} 
+model cart_items {
+  id         BigInt    @id @default(autoincrement())
+  user_id    BigInt?
+  product_id BigInt?
+  quantity   Int
+  created_at DateTime? @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  updated_at DateTime? @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  products   Product?  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      User?     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+enum order_status {
+  pending
+  shipped
+  completed
+  cancelled
+}
+
+enum user_role {
+  customer
+  seller
+  admin
+}

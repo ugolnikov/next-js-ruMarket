@@ -24,9 +24,8 @@ const Navigation = ({ user }) => {
     const [cartCount, setCartCount] = useState(0)
     
     useEffect(() => {
-        if (cart && Array.isArray(cart.items)) {
-            const totalItems = cart.items.length
-            setCartCount(totalItems)
+        if (cart?.items && Array.isArray(cart.items)) {
+            setCartCount(cart.items.length)
         } else {
             setCartCount(0)
         }

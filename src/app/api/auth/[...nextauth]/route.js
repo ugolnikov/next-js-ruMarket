@@ -1,6 +1,8 @@
-import NextAuth from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { GET, POST } from '@/lib/auth'
 
-const handler = NextAuth(authOptions)
+// Принудительно делаем роут динамическим
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
 
-export { handler as GET, handler as POST } 
+export { GET, POST } 

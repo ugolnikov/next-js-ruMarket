@@ -14,9 +14,9 @@
       "name": "user",
       "email": "user@example.com",
       "password": "$2b$10$8KUd3YUwbBRHZBxMc5sI4OK8VaSGsOIoYsdgTNvYE/ZsRpw9bbCRq",
-      "role": "customer",
+      "role": "seller",
       "createdAt": "2025-02-16T13:49:26.306Z",
-      "updatedAt": "2025-02-16T13:49:26.306Z"
+      "updatedAt": "2025-02-19T01:37:44.951Z"
     },
     {
       "id": 3,

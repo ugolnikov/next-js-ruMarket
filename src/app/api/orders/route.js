@@ -1,61 +1,84 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { auth } from '@/lib/auth'
 
-// Получение списка заказов пользователя
-export async function GET(request) {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
+
+// Serialize BigInt values
+const serializeOrder = (order) => {
+    return {
+        ...order,
+        id: Number(order.id),
+        userId: order.userId ? Number(order.userId) : null,
+        totalAmount: Number(order.totalAmount),
+        items: order.items.map(item => ({
+            ...item,
+            id: Number(item.id),
+            orderId: Number(item.orderId),
+            productId: Number(item.productId),
+            price: Number(item.price),
+            product: item.product ? {
+                ...item.product,
+                id: Number(item.product.id),
+                price: Number(item.product.price),
+                seller_id: item.product.seller_id ? Number(item.product.seller_id) : null
+            } : null
+        }))
     }
+}
 
+// Получение всех заказов
+export async function GET() {
     try {
-        const orders = await db.getUserOrders(session.user.id)
-        return NextResponse.json(orders || [])
+        const session = await auth()
+        
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        // Если админ - возвращаем все заказы, если нет - только заказы пользователя
+        const orders = session.user.role === 'admin' 
+            ? await db.getAllOrders()
+            : await db.getUserOrders(session.user.id)
+
+        return NextResponse.json(orders.map(serializeOrder))
     } catch (error) {
-        console.error('Error getting orders:', error)
+        console.error('Error getting orders:', error.message || 'Unknown error')
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
 
-// Создание нового заказа
+// Создание заказа
 export async function POST(request) {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     try {
-        const orderData = await request.json()
+        const session = await auth()
         
-        if (!orderData.items || !orderData.shipping_address) {
-            return NextResponse.json(
-                { error: 'Missing required fields' },
-                { status: 400 }
-            )
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Валидация данных
-        if (!orderData.shipping_address.fullName || 
-            !orderData.shipping_address.email || 
-            !orderData.shipping_address.phone || 
-            !orderData.shipping_address.address) {
-            return NextResponse.json(
-                { error: 'Missing shipping address fields' },
-                { status: 400 }
-            )
+        const orderData = await request.json()
+        
+        if (!orderData?.items || !Array.isArray(orderData.items) || orderData.items.length === 0) {
+            return NextResponse.json({ error: 'Invalid order data: items array is required' }, { status: 400 })
+        }
+
+        if (!orderData?.shipping_address) {
+            return NextResponse.json({ error: 'Invalid order data: shipping_address is required' }, { status: 400 })
         }
 
         const order = await db.createOrder(session.user.id, orderData)
-        return NextResponse.json({ orders: [order] }, { status: 201 })
+
+        if (!order) {
+            throw new Error('Failed to create order')
+        }
+
+        return NextResponse.json({ order: serializeOrder(order) })
     } catch (error) {
-        console.error('Error creating order:', error)
-        return NextResponse.json(
-            { error: 'Failed to create order' },
-            { status: 500 }
-        )
+        const errorMessage = error.message || 'Unknown error'
+        console.error('Error creating order:', errorMessage)
+        return NextResponse.json({ error: errorMessage }, { status: 500 })
     }
-} 
+}

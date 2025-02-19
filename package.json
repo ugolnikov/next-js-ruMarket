@@ -2,6 +2,7 @@
   "name": "breeze-next",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,17 +11,21 @@
     "lint:fix": "next lint --fix"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^1.1.0",
     "@headlessui/react": "^1.4.2",
-    "axios": "^0.21.1",
+    "@prisma/client": "^5.10.2",
+    "@supabase/supabase-js": "^2.48.1",
+    "axios": "^1.6.7",
     "bcryptjs": "^3.0.0",
+    "dotenv": "^16.4.7",
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
     "lodash.debounce": "^4.0.8",
-    "next": "^15.1.7",
-    "next-auth": "^4.24.11",
+    "next": "^15.1.0",
+    "next-auth": "^5.0.0-beta.3",
     "next-client-cookies": "^2.0.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-hook-form": "^7.54.2",
     "styled-components": "^6.1.13",
     "swiper": "^11.1.15",
@@ -37,6 +42,13 @@
     "eslint-config-prettier": "^7.2.0",
     "postcss": "^8.4.6",
     "prettier": "^3.2.5",
+    "prisma": "^5.10.2",
     "tailwindcss": "^3.4.3"
+  },
+  "eslintConfig": {
+    "extends": [
+      "next/core-web-vitals",
+      "prettier"
+    ]
   }
 }

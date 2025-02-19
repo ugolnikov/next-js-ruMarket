@@ -9,8 +9,8 @@ import { useCart } from '@/hooks/cart'
 
 const Checkout = () => {
     const router = useRouter()
-    const { user, cart, isLoading } = useAuth()
-    const { clearCart } = useCart()
+    const { user } = useAuth()
+    const { cart, clearCart, isLoading: cartLoading } = useCart()
     const [totalPrice, setTotalPrice] = useState(0)
 
     const [formData, setFormData] = useState({
@@ -23,7 +23,7 @@ const Checkout = () => {
     const [errors, setErrors] = useState({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [success, setSuccess] = useState('')
-    console.log(cart)
+
     // Подставляем данные пользователя при загрузке
     useEffect(() => {
         if (user) {
@@ -36,6 +36,7 @@ const Checkout = () => {
             }))
         }
     }, [user])
+
     useEffect(() => {
         if (cart?.items && Array.isArray(cart.items)) {
             const total = cart.items.reduce(
@@ -104,6 +105,10 @@ const Checkout = () => {
         }
 
         try {
+            if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
+                throw new Error('Cart is empty')
+            }
+
             const orderData = {
                 shipping_address: {
                     fullName: formData.fullName,
@@ -112,28 +117,25 @@ const Checkout = () => {
                     address: formData.address
                 },
                 items: cart.items.map(item => ({
-                    product_id: item.product.id,
-                    quantity: item.quantity,
-                    price: item.product.price
+                    product_id: Number(item.product.id),
+                    quantity: Number(item.quantity),
+                    price: Number(item.product.price)
                 }))
             }
 
             const response = await axios.post('/api/orders', orderData)
             
-            if (response.data.orders?.[0]) {
+            if (response.data.order) {
                 setSuccess('Заказ успешно оформлен!')
                 
                 try {
-                    // Используем хук корзины для очистки
                     await clearCart()
                 } catch (clearError) {
                     console.error('Error clearing cart:', clearError)
-                    // Продолжаем выполнение, даже если очистка корзины не удалась
                 }
                 
-                setTimeout(() => {
-                    router.push(`/dashboard/orders/${response.data.orders[0].order_number}`)
-                }, 2000)
+                // Redirect to the order details page
+                router.push(`/dashboard/orders/order/${response.data.order.orderNumber}?success=true`)
             } else {
                 throw new Error('Неверный формат ответа от сервера')
             }
@@ -148,9 +150,9 @@ const Checkout = () => {
         }
     }
 
-    if (isLoading) return <Loader />
+    if (cartLoading) return <Loader />
 
-    if (!cart || cart.items.length === 0) {
+    if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
         return (
             <div className="max-w-2xl mx-auto mt-10 p-6">
                 <p className="text-center text-gray-600">
@@ -161,106 +163,122 @@ const Checkout = () => {
     }
 
     return (
-        <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold text-[#4438ca] mb-6">
-                Оформление заказа
-            </h2>
+        <div className="py-12">
+            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div className="p-6 bg-white border-b border-gray-200">
+                        <h2 className="text-2xl font-bold mb-4">Оформление заказа</h2>
+                        {success && (
+                            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">
+                                {success}
+                            </div>
+                        )}
+                        {errors.submit && (
+                            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                                {errors.submit}
+                            </div>
+                        )}
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    ФИО
+                                </label>
+                                <input
+                                    type="text"
+                                    name="fullName"
+                                    value={formData.fullName}
+                                    onChange={handleChange}
+                                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
+                                        errors.fullName ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.fullName && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.fullName}
+                                    </p>
+                                )}
+                            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* ФИО */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                        ФИО
-                    </label>
-                    <input
-                        type="text"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4438ca] focus:ring-[#4438ca]"
-                    />
-                    {errors.fullName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
-                    )}
-                </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
+                                        errors.email ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.email && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.email}
+                                    </p>
+                                )}
+                            </div>
 
-                {/* Email */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Email
-                    </label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4438ca] focus:ring-[#4438ca]"
-                    />
-                    {errors.email && (
-                        <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                    )}
-                </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Телефон
+                                </label>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    placeholder="+7XXXXXXXXXX"
+                                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
+                                        errors.phone ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.phone && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.phone}
+                                    </p>
+                                )}
+                            </div>
 
-                {/* Телефон */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Телефон
-                    </label>
-                    <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="+7XXXXXXXXXX"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4438ca] focus:ring-[#4438ca]"
-                    />
-                    {errors.phone && (
-                        <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-                    )}
-                </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Адрес доставки
+                                </label>
+                                <textarea
+                                    name="address"
+                                    value={formData.address}
+                                    onChange={handleChange}
+                                    rows="3"
+                                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
+                                        errors.address ? 'border-red-500' : ''
+                                    }`}
+                                />
+                                {errors.address && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.address}
+                                    </p>
+                                )}
+                            </div>
 
-                {/* Адрес */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                        Адрес доставки
-                    </label>
-                    <textarea
-                        name="address"
-                        value={formData.address}
-                        onChange={handleChange}
-                        rows="3"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4438ca] focus:ring-[#4438ca]"
-                    />
-                    {errors.address && (
-                        <p className="mt-1 text-sm text-red-600">{errors.address}</p>
-                    )}
-                </div>
-
-                {/* Итоговая сумма */}
-                <div className="border-t pt-4">
-                    <div className="flex justify-between items-center text-lg font-bold">
-                        <span>Итого:</span>
-                        <span>{totalPrice} ₽</span>
+                            <div className="flex justify-between items-center mt-6">
+                                <div>
+                                    <p className="text-lg font-semibold">
+                                        Итого к оплате: {totalPrice}₽
+                                    </p>
+                                </div>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className={isSubmitting ? 'opacity-50' : ''}>
+                                    {isSubmitting
+                                        ? 'Оформление...'
+                                        : 'Оформить заказ'}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-
-                {/* Кнопка оформления */}
-                <div className="flex flex-col items-center gap-4">
-                    <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full rounded">
-                        {isSubmitting ? 'Оформление...' : 'Оформить заказ'}
-                    </Button>
-                    
-                    {errors.submit && (
-                        <p className="text-sm text-red-600">{errors.submit}</p>
-                    )}
-                    {success && (
-                        <p className="text-sm text-green-600">{success}</p>
-                    )}
-                </div>
-            </form>
+            </div>
         </div>
     )
 }

@@ -13,8 +13,25 @@ export async function GET(request) {
         // Вычисляем метаданные для пагинации
         const last_page = Math.ceil(total / limit)
 
+        // Convert BigInt to Number in the products array
+        const serializedProducts = products.map(product => {
+            const { seller, ...rest } = product
+            return {
+                ...rest,
+                id: Number(product.id),
+                seller_id: product.seller_id ? Number(product.seller_id) : null,
+                seller: seller ? {
+                    ...seller,
+                    id: Number(seller.id)
+                } : null,
+                price: Number(product.price),
+                createdAt: product.createdAt?.toISOString(),
+                updatedAt: product.updatedAt?.toISOString()
+            }
+        })
+
         return NextResponse.json({
-            data: products,
+            data: serializedProducts,
             meta: {
                 current_page: page,
                 last_page: last_page,

@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    reactStrictMode: true,
+    output: 'standalone',
     images: {
+        domains: ['parpol.ru', 'placeholder.com', 'via.placeholder.com', 'placehold.co', 'localhost', 'stokenwmuhlhaubnvubs.supabase.co'],
         remotePatterns: [
             {
                 protocol: 'https',
@@ -14,24 +17,27 @@ const nextConfig = {
             },
             {
                 protocol: 'https',
-                hostname: 'next-js-client-for-next-laravel-production.up.railway.app',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'api-deploy-production-a967.up.railway.app',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'parpol.ru',
+                hostname: 'stokenwmuhlhaubnvubs.supabase.co',
                 pathname: '/**',
             }
-        ],
-        domains: ['localhost'],
-        unoptimized: process.env.NODE_ENV !== 'production',
+        ]
     },
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '2mb'
+        }
+    },
+    // Отключаем статическую оптимизацию для API роутов
+    typescript: {
+        ignoreBuildErrors: true
+    },
+    webpack: (config) => {
+        config.experiments = {
+            ...config.experiments,
+            topLevelAwait: true
+        }
+        return config
+    }
 }
 
-module.exports = nextConfig
-
+export default nextConfig

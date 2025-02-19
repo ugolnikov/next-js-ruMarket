@@ -10,12 +10,12 @@ import { useState, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import debounce from 'lodash/debounce'
+import { signOut } from 'next-auth/react';
 
 const Dashboard = () => {
-    const { user, mutate, orders, isLoading, updatePhone } = useAuth()
-    const { orders: useOrdersOrders, isLoading: ordersLoading } = useOrders()
+    const { user, mutate, isLoading, updatePhone } = useAuth()
+    const { orders, isLoading: ordersLoading } = useOrders()
     const router = useRouter()
-
     const [searchTerm, setSearchTerm] = useState('')
     const [filteredOrders, setFilteredOrders] = useState([])
     const [isEditingPhone, setIsEditingPhone] = useState(false)
@@ -25,28 +25,28 @@ const Dashboard = () => {
 
     // Создаем функцию debounce для поиска
     const debouncedSearch = useCallback(
-        debounce((term, orders) => {
-            if (!orders) return;
+        debounce((term, ordersData, callback) => {
+            if (!ordersData) return;
 
             if (!term.trim()) {
-                setFilteredOrders(orders);
+                callback(ordersData);
                 return;
             }
 
-            const filtered = orders.filter(order => 
-                order.order_number.toLowerCase().includes(term.toLowerCase()) ||
-                order.total_amount.toString().includes(term)
+            const filtered = ordersData.filter(order => 
+                order.orderNumber.toLowerCase().includes(term.toLowerCase()) ||
+                order.totalAmount.toString().includes(term)
             );
-            setFilteredOrders(filtered);
+            callback(filtered);
         }, 300),
         []
     );
 
     useEffect(() => {
-        if (useOrdersOrders) {
-            debouncedSearch(searchTerm, useOrdersOrders);
+        if (orders) {
+            debouncedSearch(searchTerm, orders, setFilteredOrders);
         }
-    }, [searchTerm, useOrdersOrders, debouncedSearch]);
+    }, [searchTerm, orders, debouncedSearch]);
 
     const handleSearchChange = (e) => {
         const value = e.target.value;
@@ -110,17 +110,26 @@ const Dashboard = () => {
         }
     }
 
-    const changeRole = async ({ url }) => {
+    const changeRole = async () => {
         try {
-            await axios.post(url)
-            mutate()
+            // Determine the new role based on current role
+            const newRole = user.role === 'customer' ? 'seller' : 'customer';
+            
+            const response = await axios.put(`api/dashboard/${user.id}`, {
+                role: newRole
+            });
+      
+            if (response.data.signOut) {
+                signOut({ callbackUrl: '/login' }); 
+            }
+      
+            mutate();  
         } catch (error) {
-            throw new Error('Ошибка при смене роли:', error)
+            console.error('Error changing role:', error);
         }
-    }
+    };
 
     if (!user || ordersLoading) return <Loader />
-
     return (
         <>
             <Header title="Личный кабинет" />
@@ -188,7 +197,7 @@ const Dashboard = () => {
                             </div>
 
                             <p className="mt-4 text-lg text-gray-700">
-                                Роль:
+                                Роль: 
                                 {user?.role === 'seller' ? (
                                     <>
                                         <span className="text-[#4438ca]">
@@ -197,9 +206,7 @@ const Dashboard = () => {
                                         <Button
                                             className="text-sm rounded !p-1"
                                             onClick={() =>
-                                                changeRole({
-                                                    url: '/api/change_role/customer',
-                                                })
+                                                changeRole()
                                             }>
                                             Стать покупателем
                                         </Button>
@@ -394,7 +401,7 @@ const Dashboard = () => {
                                                     className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                                                     <div className="flex justify-between items-center mb-2">
                                                         <span className="font-medium">
-                                                            Заказ #{order.order_number}
+                                                            Заказ #{order.orderNumber}
                                                         </span>
                                                         <span
                                                             className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
@@ -404,16 +411,16 @@ const Dashboard = () => {
                                                         </span>
                                                     </div>
                                                     <div className="text-sm text-gray-600">
-                                                        <p>Сумма: {order.total_amount} ₽</p>
+                                                        <p>Сумма: {order.totalAmount} ₽</p>
                                                         <p>
                                                             Дата:{' '}
                                                             {new Date(
-                                                                order.created_at,
+                                                                order.createdAt,
                                                             ).toLocaleDateString()}
                                                         </p>
                                                     </div>
                                                     <Link
-                                                        href={`/dashboard/orders/${order.order_number}`}
+                                                        href={`/dashboard/orders/order/${order.orderNumber}`}
                                                         className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block">
                                                         Подробнее
                                                     </Link>
