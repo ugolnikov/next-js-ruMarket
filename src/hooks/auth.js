@@ -1,3 +1,5 @@
+'use client'
+
 import useSWR from 'swr'
 import axios from '@/lib/axios'
 import { useRouter } from 'next/navigation'
@@ -6,7 +8,7 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 
 export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
     const router = useRouter()
-    const { data: session, status } = useSession()
+    const { data: session, status, update: sessionUpdate } = useSession()
 
     const {
         data: cart,
@@ -118,6 +120,30 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
             console.error('Registration error:', error)
         }
     }
+    const updatePhone = async (phone) => {
+        try {
+            const response = await axios.put('/api/user/profile', { phone })
+            
+            if (response.data.success) {
+                // Force refresh the session to get updated user data
+                const event = new Event('visibilitychange')
+                document.dispatchEvent(event)
+                return { success: true }
+            }
+            
+            return {
+                success: false,
+                errors: response.data.errors
+            }
+        } catch (error) {
+            return {
+                success: false,
+                errors: {
+                    phone: [error.response?.data?.errors?.phone?.[0] || 'Failed to update phone number']
+                }
+            }
+        }
+    }
 
     useEffect(() => {
         if (status === 'loading') return
@@ -138,6 +164,8 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
         logout,
         register,
         status,
+        updatePhone,
         mutateCart,
+        mutate: sessionUpdate
     }
 }

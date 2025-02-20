@@ -25,8 +25,8 @@ export async function GET(request) {
         const targetUserId = Number(id)
 
         // Проверяем, что пользователь имеет доступ к этим данным
-        if (session.user.id !== targetUserId && session.user.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        if (session.user.id !== targetUserId) {
+            return NextResponse.json({ error: 'Forbidden ' }, { status: 403 })
         }
 
         const userData = await prisma.user.findUnique({
@@ -54,8 +54,12 @@ export async function GET(request) {
             }
         })
     } catch (error) {
-        console.error('Error getting user data:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        console.error('Error updating user:', error)
+        return NextResponse.json(
+            // Use optional chaining to safely access error.message
+            { error: error?.message || 'Internal Server Error' },
+            { status: 500 }
+        )
     }
 }
 
@@ -77,60 +81,72 @@ export async function PUT(request) {
         const targetUserId = Number(id)
         const updateData = await request.json()
 
-        // Special handling for role changes
-        if (updateData.role) {
-            // Only allow users to change their own role
-            // if (session.user.id !== targetUserId) {
-            //     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-            // }
-            
-            // Only allow switching between customer and seller
-            if (!['customer', 'seller'].includes(updateData.role)) {
-                return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+        // Check if INN already exists for another user
+        if (updateData.inn) {
+            const existingUser = await prisma.user.findFirst({
+                where: {
+                    inn: updateData.inn,
+                    id: { not: targetUserId } // Exclude current user
+                }
+            })
+
+            if (existingUser) {
+                return NextResponse.json(
+                    { error: 'ИНН уже используется другим продавцом' },
+                    { status: 400 }
+                )
             }
         }
-        // } else {
-        //     // For other updates, maintain the original permission check
-        //     // if (session.user.id !== targetUserId && session.user.role !== 'admin') {
-        //     //     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-        //     // }
-        // }
 
-        // Update user in database
+        // Update user in database with all seller fields
         const updatedUser = await prisma.user.update({
             where: { id: targetUserId },
-            data: updateData
-        })
-        
-        if (!updatedUser) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 })
-        }
-
-        // Serialize the response data
-        const serializedUser = {
-            ...updatedUser,
-            id: Number(updatedUser.id),
-            createdAt: updatedUser.createdAt?.toISOString(),
-            updatedAt: updatedUser.updatedAt?.toISOString()
-        }
-        
-        // If role was changed, indicate that the user should be signed out
-        const shouldSignOut = updateData.role && updateData.role !== session.user.role
-        
-        // Добавляем заголовки для предотвращения кэширования
-        return new NextResponse(JSON.stringify({
-            ...serializedUser,
-            signOut: shouldSignOut
-        }), {
-            status: 200,
-            headers: {
-                'Cache-Control': 'no-store, must-revalidate',
-                'Pragma': 'no-cache'
+            data: {
+                role: updateData.role,
+                company_name: updateData.company_name,
+                inn: updateData.inn,
+                address: updateData.address,
+                phone: updateData.phone,
+                is_verify: true
+            },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                phone: true,
+                company_name: true,
+                inn: true,
+                address: true,
+                is_verify: true,
+                logo: true,
+                createdAt: true,
+                updatedAt: true
             }
-        })
+        });
+
+        // Формируем ответ
+        return NextResponse.json({
+            user: {
+                ...updatedUser,
+                id: Number(updatedUser.id),
+                createdAt: updatedUser.createdAt.toISOString(),
+                updatedAt: updatedUser.updatedAt.toISOString()
+            },
+            signOut: updateData.role && updateData.role !== session.user.role
+        });
+
     } catch (error) {
-        console.error('Error updating user:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        console.error('Ошибка обновления:', error);
+        
+        // Всегда возвращаем валидный JSON
+        return NextResponse.json(
+            { 
+                error: error?.message || 'Внутренняя ошибка сервера',
+                details: error?.stack?.split('\n') 
+            },
+            { status: 500 }
+        );
     }
 }
 
@@ -168,7 +184,11 @@ export async function DELETE(request) {
             }
         })
     } catch (error) {
-        console.error('Error deleting user:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        console.error('Error updating user:', error)
+        return NextResponse.json(
+            // Use optional chaining to safely access error.message
+            { error: error?.message || 'Internal Server Error' },
+            { status: 500 }
+        )
     }
 }

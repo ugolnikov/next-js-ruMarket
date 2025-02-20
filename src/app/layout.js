@@ -8,6 +8,14 @@ const nunitoFont = Nunito({
     display: 'swap',
 })
 
+export const metadata = {
+    title: {
+        template: '%s | ruMarket',
+        default: 'ruMarket - Маркетплейс',
+    },
+    description: 'Онлайн маркетплейс ruMarket',
+}
+
 const RootLayout = ({ children }) => {
     return (
         <CookiesProvider>
@@ -26,8 +34,5 @@ const RootLayout = ({ children }) => {
     )
 }
 
-export const metadata = {
-    title: 'Laravel',
-}
 
 export default RootLayout

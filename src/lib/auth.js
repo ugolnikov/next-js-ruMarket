@@ -39,25 +39,45 @@ export const { auth, handlers: { GET, POST }, signIn, signOut } = NextAuth({
                     id: Number(user.id),
                     email: user.email,
                     name: user.name,
-                    role: user.role
+                    role: user.role,
+                    phone: user.phone,
+                    is_verify: user.is_verify, // Add is_verify to the session
+                    company_name: user.company_name, // Add company_name as well
+                    inn: user.inn, // Add inn
+                    address: user.address // Add address
                 }
             }
         })
     ],
     callbacks: {
+        async session({ session, token }) {
+            if (token) {
+                // Fetch fresh user data
+                const user = await prisma.user.findUnique({
+                    where: { id: BigInt(token.id) }
+                })
+                
+                session.user = {
+                    id: String(user.id),
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    phone: user.phone,
+                    is_verify: user.is_verify, // Add is_verify to the session
+                    company_name: user.company_name, // Add company_name as well
+                    inn: user.inn, // Add inn
+                    address: user.address // Add address
+                }
+            }
+            return session
+        },
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id
                 token.role = user.role
+                token.phone = user.phone
             }
             return token
-        },
-        async session({ session, token }) {
-            if (token) {
-                session.user.id = token.id
-                session.user.role = token.role
-            }
-            return session
         }
     },
     session: {
@@ -66,4 +86,4 @@ export const { auth, handlers: { GET, POST }, signIn, signOut } = NextAuth({
     pages: {
         signIn: '/login'
     }
-}) 
+})

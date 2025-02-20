@@ -3,6 +3,8 @@
 import { useAuth } from '@/hooks/auth'
 import { useForm } from 'react-hook-form'
 import { useState } from 'react'
+import { motion } from 'framer-motion'
+import Head from 'next/head'
 
 const Register = () => {
     const { register: registerUser } = useAuth({
@@ -33,14 +35,33 @@ const Register = () => {
     }
 
     return (
-        <div className="flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <>
+        <Head>
+                <title>Регистрация</title>
+            </Head>
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+        >
             <div className="max-w-md w-full space-y-8">
-                <div>
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                >
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                         Регистрация
                     </h2>
-                </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                </motion.div>
+                <motion.form 
+                    className="mt-8 space-y-6" 
+                    onSubmit={handleSubmit(onSubmit)}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                >
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
                             <input
@@ -129,9 +150,9 @@ const Register = () => {
                             Зарегистрироваться
                         </button>
                     </div>
-                </form>
+                </motion.form>
             </div>
-        </div>
+        </motion.div></>
     )
 }
 

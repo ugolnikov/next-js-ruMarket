@@ -52,7 +52,6 @@ export default function OrderDetails({ orderNumber }) {
             setIsError(false)
             setNotFound(false)
             const data = await loadOrder(orderNumber)
-            console.log(data)
             if (data === null) {
                 setNotFound(true)
             } else {

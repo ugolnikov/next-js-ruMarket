@@ -15,20 +15,23 @@ const ProductCard = ({ product }) => {
                         src={product.image_preview}
                         alt={product.name}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         style={{ objectFit: 'cover' }}
                         className="hover:opacity-75 transition-opacity duration-300"
                     />
                 </div>
             </Link>
             <div className="p-4">
-                <Link href={`/product/${product.id}`} className="block">
-                    <h3 className="text-lg font-semibold text-gray-800 hover:text-[#4438ca] mb-2">
-                        {product.name}
-                    </h3>
-                </Link>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                    {product.description}
-                </p>
+                <div className="mb-4">
+                    <Link href={`/product/${product.id}`} className="block">
+                        <h3 className="text-lg font-semibold text-gray-800 hover:text-[#4438ca] mb-2">
+                            {product.name}
+                        </h3>
+                    </Link>
+                    <p className="text-gray-600 text-sm line-clamp-2">
+                        {product.description}
+                    </p>
+                </div>
                 <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-[#4438ca]">
                         {product.price}₽
@@ -36,11 +39,15 @@ const ProductCard = ({ product }) => {
                             / {product.unit}
                         </span>
                     </span>
-                    {user?.role === 'customer' && <AddToCartButton productId={product.id} />}
+                    {user?.role === 'customer' && (
+                        <div onClick={e => e.stopPropagation()}>
+                            <AddToCartButton productId={product.id} />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     )
 }
 
-export default ProductCard 
+export default ProductCard

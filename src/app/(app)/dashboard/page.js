@@ -106,6 +106,7 @@ const Dashboard = () => {
                 setPhoneError(result.errors?.phone?.[0] || 'Произошла ошибка')
             }
         } catch (error) {
+            console.error(error)
             setPhoneError('Произошла ошибка при обновлении номера')
         }
     }
@@ -128,7 +129,7 @@ const Dashboard = () => {
             console.error('Error changing role:', error);
         }
     };
-
+    
     if (!user || ordersLoading) return <Loader />
     return (
         <>

@@ -1,5 +1,9 @@
 import ProductList from '@/components/Products'
 
+export const metadata = {
+    title: 'Главная',
+}
+
 const Home = () => {
     return (
         <div  className="min-h-screen bg-white">

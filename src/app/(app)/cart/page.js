@@ -9,8 +9,10 @@ import { useRouter } from 'next/navigation'
 import axios from '@/lib/axios'
 import Header from '@/components/Header'
 import Image from 'next/image'
+import Head from 'next/head'
 
 const CartPage = () => {
+    
     const { user } = useAuth()
     const { cart, mutateCart, removeFromCart } = useCart()
 
@@ -66,6 +68,9 @@ const CartPage = () => {
     
     return (
         <>
+        <Head>
+            <title>Корзина</title>
+        </Head>
         <Header title="Корзина"/>
         <div className="min-h-[20%] py-12 flex flex-col">
             <div className="flex-grow bg-white rounded-lg shadow-lg overflow-hidden w-full sm:px-10 mb-6 flex align-center justify-center flex-col">

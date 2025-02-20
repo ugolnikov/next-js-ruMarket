@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 export const dynamic = 'force-dynamic'
@@ -10,7 +10,7 @@ export async function POST(request) {
     try {
         const { name, email, password, password_confirmation } = await request.json()
 
-        // Валидация
+        // Validation
         if (!name || !email || !password || !password_confirmation) {
             return NextResponse.json(
                 { error: 'Все поля обязательны для заполнения' },
@@ -25,8 +25,11 @@ export async function POST(request) {
             )
         }
 
-        // Проверяем, существует ли пользователь
-        const existingUser = await db.findUser(email)
+        // Check if user exists
+        const existingUser = await prisma.user.findUnique({
+            where: { email }
+        })
+
         if (existingUser) {
             return NextResponse.json(
                 { error: 'Пользователь с таким email уже существует' },
@@ -34,21 +37,29 @@ export async function POST(request) {
             )
         }
 
-        // Хешируем пароль
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10)
 
-        // Создаем пользователя
-        const user = await db.createUser({
-            name,
-            email,
-            password: hashedPassword,
-            role: 'customer' // По умолчанию роль customer
+        // Create user
+        const user = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password: hashedPassword,
+                role: 'customer'
+            }
         })
 
-        // Удаляем пароль из ответа
-        const { password: _, ...userWithoutPassword } = user
+        // Remove password and serialize BigInt values
+        const { password: _, ...userData } = user
+        const serializedUser = {
+            ...userData,
+            id: Number(userData.id),
+            createdAt: userData.createdAt?.toISOString(),
+            updatedAt: userData.updatedAt?.toISOString()
+        }
 
-        return NextResponse.json(userWithoutPassword)
+        return NextResponse.json({ user: serializedUser }, { status: 201 })
     } catch (error) {
         console.error('Registration error:', error)
         return NextResponse.json(
@@ -56,4 +67,4 @@ export async function POST(request) {
             { status: 500 }
         )
     }
-} 
+}
