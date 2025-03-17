@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/cart'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const CartIcon = () => {
@@ -47,9 +48,11 @@ const CartIcon = () => {
                                     key={item.id}
                                     href={`/product/${item.product.id}`}
                                     className="flex items-center px-4 py-2 hover:bg-gray-100">
-                                    <img
+                                    <Image
                                         src={item.product?.image_preview || '/images/no-image.png'}
                                         alt={item.product?.name}
+                                        width="200"
+                                        height="200"
                                         className="w-10 h-10 object-cover rounded"
                                     />
                                     <div className="ml-3">

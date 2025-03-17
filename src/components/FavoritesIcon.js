@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useFavorites } from '@/hooks/favorites'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const FavoritesIcon = () => {
@@ -47,9 +48,11 @@ const FavoritesIcon = () => {
                                     key={item.id}
                                     href={`/product/${item.product_id}`}
                                     className="flex items-center px-4 py-2 hover:bg-gray-100">
-                                    <img
+                                    <Image
                                         src={item.products.image_preview || '/images/no-image.png'}
                                         alt={item.products.name}
+                                        width="200"
+                                        height="200"
                                         className="w-10 h-10 object-cover rounded"
                                     />
                                     <div className="ml-3">
