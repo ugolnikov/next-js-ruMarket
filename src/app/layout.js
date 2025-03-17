@@ -19,22 +19,20 @@ export const metadata = {
 
 const RootLayout = ({ children }) => {
     return (
-        <CookiesProvider>
-        <SpeedInsights/>
         <html lang="ru" className={nunitoFont.className}>
             <head>
-            <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
-            <title>ruMarket</title>
+                <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
             </head>
             <body className="antialiased">
-                <Providers>
-                    {children}
-                </Providers>
+                <CookiesProvider>
+                    <Providers>
+                        {children}
+                        <SpeedInsights />
+                    </Providers>
+                </CookiesProvider>
             </body>
         </html>
-        </CookiesProvider>
     )
 }
-
 
 export default RootLayout

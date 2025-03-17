@@ -47,7 +47,7 @@ const OneProduct = () => {
             <h1>{product.name}</h1>
             <p>{product.description}</p>
             <p>Цена: {product.price}₽</p>
-            <Image src={product.image_preview} alt={product.name} width={300} height={300} />
+            <Image src={product.image_preview} alt={product.name} width={300} height={300} className="rounded"/>
         </div>
     )
 }

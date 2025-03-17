@@ -7,6 +7,8 @@ import axios from '@/lib/axios'
 import ImageFallback from '@/components/ImageFallback'
 import { useCart } from '@/hooks/cart'
 import Button from '@/components/Button'
+import Link from 'next/link'
+import FavoriteButton from '@/components/FavoriteButton'
 
 const loadProduct = async (id) => {
     try {
@@ -87,7 +89,6 @@ export default function Page({ params }) {
     if (isError) return <p>Ошибка загрузки товара</p>
     if (!product) return <p>Товар не найден</p>
     const parsed_description = product.description?.split("\n") || []
-    console.log(parsed_description)
     return (
         <div className="container mx-auto px-4 py-8 my-2">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -98,12 +99,15 @@ export default function Page({ params }) {
                             alt={product.name}
                             fill
                             style={{ objectFit: 'cover' }}
-                            className="rounded-lg"
+                            className="rounded"
                         />
                     </div>
-                    <div className="flex flex-col justify-evenly">
+                    <div className="flex flex-col justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
+                            <div className="flex justify-between items-start mb-4">
+                                <h1 className="text-3xl font-bold">{product.name}</h1>
+                                <FavoriteButton productId={product.id} />
+                            </div>
                             <div className="text-gray-600 mb-6 text-lg">
                                 {parsed_description.map((element, index) => (
                                     <p key={index} className="mb-2">{element}</p>
@@ -114,9 +118,7 @@ export default function Page({ params }) {
                                     {product.price} ₽
                                 </span>
                             </div>
-                        </div>
-                        
-                        {user?.role === 'customer' && (
+                            {user?.role === 'customer' && (
                             <div className="mt-6">
                                 <Button
                                     onClick={handleAddToCart}
@@ -137,6 +139,54 @@ export default function Page({ params }) {
                                 )}
                             </div>
                         )}
+                            {/* Updated Seller Information Section */}
+                            <div className="border-t border-gray-200 pt-6 mb-6">
+                                <h2 className="text-xl font-semibold mb-4">Информация о продавце</h2>
+                                {product.seller ? (
+                                    <div className="flex items-center space-x-4">
+                                        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-100">
+                                            <ImageFallback
+                                                src={product.seller.logo || '/images/default-avatar.png'}
+                                                alt={product.seller.company_name || product.seller.name}
+                                                fill
+                                                style={{ objectFit: 'cover' }}
+                                                className="rounded-full"
+                                            />
+                                        </div>
+                                        
+                                        <div className="flex-1">
+                                            <h3 className="font-medium text-lg">
+                                                {product.seller.company_name || product.seller.name}
+                                            </h3>
+                                            <div className="text-gray-600 space-y-1 mt-2">
+                                                {product.seller.address && (
+                                                    <p className="flex items-center">
+                                                        <span className="w-20 font-medium">Адрес:</span>
+                                                        <span>{product.seller.address}</span>
+                                                    </p>
+                                                )}
+                                                {product.seller.phone && (
+                                                    <p className="flex items-center">
+                                                        <span className="w-20 font-medium">Телефон:</span>
+                                                        <span>{product.seller.phone}</span>
+                                                    </p>
+                                                )}
+                                                {product.seller.email && (
+                                                    <p className="flex items-center">
+                                                        <span className="w-20 font-medium">Email:</span>
+                                                        <span>{product.seller.email}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500">Информация о продавце недоступна</p>
+                                )}
+                            </div>
+                        </div>
+                        
+                        
                     </div>
                 </div>
             </div>

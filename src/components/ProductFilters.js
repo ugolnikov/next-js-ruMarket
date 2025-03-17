@@ -41,7 +41,12 @@ const ProductFilters = ({ onSort, onFilter, filterState, initialSort = 'default'
         <div className="mb-8">
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="w-full mb-2 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-between transition-colors duration-200"
+                className="w-full 
+                mb-2 p-3 bg-gray-100 hover:bg-gray-200 
+                rounded-lg flex items-center justify-between 
+                transition-colors duration-200
+                border
+                "
             >
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Фильтры</span>

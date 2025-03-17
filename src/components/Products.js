@@ -5,6 +5,7 @@ import axios from '@/lib/axios'
 import ProductCard from '@/components/ProductCard'
 import Pagination from '@/components/Pagination'
 import Loader from '@/components/Loader'
+import WelcomeBoard from '@/components/WelcomeBoard'
 import debounce from 'lodash/debounce'
 import ProductFilters from '@/components/ProductFilters'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -50,13 +51,12 @@ const Products = () => {
         setPriceRange(range)
         setFilterState({ currentRange, isFiltered })
         setCurrentPage(1)
-    }
+    }   
 
     const { data: products, error, isLoading } = useSWR(
         `/api/products?page=${currentPage}&search=${debouncedSearchQuery}&sort=${sortType}&priceRange=${priceRange}`,
         () => axios.get(`/api/products?page=${currentPage}&search=${debouncedSearchQuery}&sort=${sortType}&priceRange=${priceRange}`).then(res => res.data),
     )
-
     if (isLoading) return <Loader />
     if (error) return <div>Ошибка загрузки товаров</div>
 
@@ -106,7 +106,9 @@ const Products = () => {
                     />
                 </motion.div>
             </AnimatePresence>
-            
+            {(() => {
+                if (currentPage === 1) return <WelcomeBoard />;
+            })()}
             <ProductFilters 
                 onSort={handleSort}
                 onFilter={handlePriceFilter}

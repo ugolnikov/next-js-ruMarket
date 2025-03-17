@@ -14,6 +14,7 @@ import LoginLinks from '@/components/LoginLinks'
 import CartIcon from '@/components/CartIcon'
 import Loader from '@/components/Loader'
 import { useCart } from '@/hooks/cart'
+import FavoritesIcon from '@/components/FavoritesIcon'
 
 const Navigation = ({ user }) => {
     const { logout } = useAuth()
@@ -48,6 +49,7 @@ const Navigation = ({ user }) => {
                         </div>
 
                         {/* Navigation Links */}
+
                         <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                             <NavLink href="/" active={pathname === '/'}>
                                 Товары
@@ -58,7 +60,7 @@ const Navigation = ({ user }) => {
                                     active={pathname === '/dashboard'}>
                                     Личный кабинет
                                 </NavLink>
-                            ) : null}
+                        ) : null}
                             {user?.role === 'seller' && user?.is_verify ? (
                                 <>
                                     <NavLink
@@ -77,7 +79,7 @@ const Navigation = ({ user }) => {
                     </div>
 
                     {/* Settings Dropdown */}
-                    <div className="hidden sm:flex sm:items-center sm:ml-6 sm:gap-5">
+                    <div className="hidden sm:flex sm:items-center sm:ml-6 sm:gap-10">
                         {!user ? (
                             <>
                                 <LoginLinks />
@@ -85,7 +87,10 @@ const Navigation = ({ user }) => {
                         ) : (
                             <>
                                 {user?.role === 'customer' ? (
+                                    <> 
+                                    <FavoritesIcon />
                                     <CartIcon cartCount={cartCount} />
+                                    </>
                                 ) : null}
                                 <Dropdown
                                     align="right"
@@ -173,6 +178,7 @@ const Navigation = ({ user }) => {
                         ) : (
                             <>
                                 {user?.role === 'customer' ? (
+                                    <> 
                                     <ResponsiveNavLink
                                         href="/cart"
                                         active={pathname === '/cart'}>
@@ -182,6 +188,13 @@ const Navigation = ({ user }) => {
                                         </span>)}
                                         
                                     </ResponsiveNavLink>
+                                    <ResponsiveNavLink
+                                    href="/dashboard/favorites"
+                                    active={pathname === '/dashboard/favorites'}>
+                                    Избранные{' '}
+                                    
+                                </ResponsiveNavLink>
+                                </>
                                 ) : null}
                                 <ResponsiveNavLink
                                     href="/dashboard"

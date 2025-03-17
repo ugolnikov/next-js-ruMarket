@@ -8,14 +8,27 @@ export const revalidate = 0
 
 export async function GET(request) {
     try {
-        // Get ID from URL
         const id = request.url.split('/').pop()
         if (!id) {
             return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 })
         }
 
         const product = await prisma.product.findUnique({
-            where: { id: Number(id) }
+            where: { id: Number(id) },
+            include: {
+                seller: {
+                    select: {
+                        id: true,
+                        name: true,
+                        company_name: true,
+                        phone: true,
+                        email: true,
+                        address: true,
+                        logo: true,
+                        inn: true
+                    }
+                }
+            }
         })
         
         if (!product) {
@@ -29,10 +42,14 @@ export async function GET(request) {
             seller_id: Number(product.seller_id),
             price: Number(product.price),
             createdAt: product.createdAt?.toISOString(),
-            updatedAt: product.updatedAt?.toISOString()
+            updatedAt: product.updatedAt?.toISOString(),
+            seller: product.seller ? {
+                ...product.seller,
+                id: Number(product.seller.id)
+            } : null
         }
 
-        // Убедимся, что путь к изображению начинается с /
+        // Ensure image path starts with /
         if (serializedProduct.image_preview && !serializedProduct.image_preview.startsWith('/')) {
             serializedProduct.image_preview = `/${serializedProduct.image_preview}`
         }

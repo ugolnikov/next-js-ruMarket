@@ -3,24 +3,30 @@ import Link from 'next/link'
 import AddToCartButton from './AddToCartButton'
 import { useAuth } from '@/hooks/auth'
 import ImageFallback from './ImageFallback'
+import FavoriteButton from './FavoriteButton'
 
 const ProductCard = ({ product }) => {
     const { user } = useAuth()
 
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <Link href={`/product/${product.id}`} className="block">
-                <div className="relative w-full" style={{ height: '300px' }}>
-                    <ImageFallback
-                        src={product.image_preview}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        style={{ objectFit: 'cover' }}
-                        className="hover:opacity-75 transition-opacity duration-300"
-                    />
+            <div className="relative">
+                <Link href={`/product/${product.id}`} className="block">
+                    <div className="relative w-full" style={{ height: '300px' }}>
+                        <ImageFallback
+                            src={product.image_preview}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            style={{ objectFit: 'cover' }}
+                            className="hover:opacity-75 transition-opacity duration-300"
+                        />
+                    </div>
+                </Link>
+                <div className="absolute top-2 right-2">
+                    <FavoriteButton productId={product.id} />
                 </div>
-            </Link>
+            </div>
             <div className="p-4">
                 <div className="mb-4">
                     <Link href={`/product/${product.id}`} className="block">
