@@ -4,6 +4,7 @@ import ProductCard from '@/components/ProductCard'
 import Loader from '@/components/Loader'
 import { useAuth } from '@/hooks/auth'
 import { useRouter } from 'next/navigation'
+import Header from '@/components/Header'
 
 const FavoritesPage = () => {
     const { favorites, isLoading } = useFavorites()
@@ -20,8 +21,9 @@ const FavoritesPage = () => {
     }
 
     return (
+        <> 
+        <Header title="Избранные"/>
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-8">Избранные товары</h1>
             {favorites?.items?.length === 0 ? (
                 <div className="text-center py-8">
                     <p className="text-gray-600">You haven't added any products to favorites yet.</p>
@@ -33,7 +35,7 @@ const FavoritesPage = () => {
                     ))}
                 </div>
             )}
-        </div>
+        </div></>
     )
 }
 

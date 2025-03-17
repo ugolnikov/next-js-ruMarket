@@ -53,7 +53,7 @@ const FavoritesIcon = () => {
                                         className="w-10 h-10 object-cover rounded"
                                     />
                                     <div className="ml-3">
-                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                        <p className="text-sm font-medium text-gray-900 truncate whitespace-normal">
                                             {item.products.name}
                                         </p>
                                         <p className="text-sm text-gray-500">
