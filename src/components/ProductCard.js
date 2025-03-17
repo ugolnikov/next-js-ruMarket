@@ -23,9 +23,11 @@ const ProductCard = ({ product }) => {
                         />
                     </div>
                 </Link>
-                <div className="absolute top-2 right-2">
-                    <FavoriteButton productId={product.id} />
-                </div>
+                {user?.role === 'customer' && (
+                    <div className="absolute top-2 right-2">
+                        <FavoriteButton productId={product.id} />
+                    </div>
+                )}
             </div>
             <div className="p-4">
                 <div className="mb-4">
