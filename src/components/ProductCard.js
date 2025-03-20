@@ -9,9 +9,9 @@ const ProductCard = ({ product }) => {
     const { user } = useAuth()
 
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <div  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <div className="relative">
-                <Link href={`/product/${product.id}`} className="block">
+                <Link href={`/product/${product.id}`} className="block" data-testid="product-card">
                     <div className="relative w-full" style={{ height: '300px' }}>
                         <ImageFallback
                             src={product.image_preview}
@@ -49,7 +49,10 @@ const ProductCard = ({ product }) => {
                     </span>
                     {user?.role === 'customer' && (
                         <div onClick={e => e.stopPropagation()}>
-                            <AddToCartButton productId={product.id} />
+                            <AddToCartButton 
+                                data-testid="add-to-cart"
+                                productId={product.id} 
+                            />
                         </div>
                     )}
                 </div>

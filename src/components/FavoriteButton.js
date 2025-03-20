@@ -45,6 +45,7 @@ const FavoriteButton = ({ productId }) => {
         <motion.button
             onClick={handleClick}
             disabled={isLoading}
+            data-testid="add-to-favorites"
             whileTap={{ scale: 0.9 }}
             className={`p-1.5 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 ${
                 isLoading ? 'opacity-50' : ''

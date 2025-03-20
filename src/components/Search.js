@@ -11,6 +11,7 @@ const Search = ({ searchQuery, setSearchQuery, handleSearch }) => {
             <div className="relative flex w-full">
                 <input
                     type="text"
+                    data-testid="search-input"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
@@ -18,6 +19,8 @@ const Search = ({ searchQuery, setSearchQuery, handleSearch }) => {
                     className="w-full px-4 py-3 rounded-l border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#4438ca] focus:border-transparent"
                 />
                 <Button
+                    type="submit"
+                    data-testid="search-button"
                     onClick={handleSearch}
                     className="px-6 py-3 text-xs bg-[#4438ca] text-white rounded-r hover:bg-[#362ea1] transition-colors duration-200 flex items-center">
                     <svg 

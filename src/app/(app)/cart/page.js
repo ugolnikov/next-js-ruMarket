@@ -79,6 +79,7 @@ const CartPage = () => {
                     return (
                         <div
                             key={item.product.id}
+                            data-testid="cart-item"
                             className="flex flex-col md:flex-row justify-between items-center border-b p-4 hover:bg-[#dddddd] transition duration-300">
                             <div className="w-full md:w-1/5 flex justify-center md:justify-start mb-4 md:mb-0">
                                 <div className="relative w-24 h-24">
@@ -105,6 +106,7 @@ const CartPage = () => {
                             </div>
                             <div className="w-full md:w-1/5 flex justify-center">
                                 <Button
+                                    data-testid="remove-from-cart"
                                     onClick={() => handleRemoveItem(item.id)}
                                     className="bg-red-500 hover:bg-red-600 rounded">
                                     Удалить

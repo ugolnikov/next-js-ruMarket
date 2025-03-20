@@ -40,6 +40,7 @@ const ProductFilters = ({ onSort, onFilter, filterState, initialSort = 'default'
     return (
         <div className="mb-8">
             <button
+                data-testid="filter-button"
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="w-full 
                 mb-2 p-3 bg-gray-100 hover:bg-gray-200 

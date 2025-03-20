@@ -5,8 +5,9 @@ const Pagination = ({ currentPage, lastPage, onPageChange }) => {
     }
 
     return (
-        <div className="flex justify-center items-center space-x-2 mt-8">
+        <div className="flex justify-center items-center space-x-2 mt-8" aria-label="pagination">
             <button
+                data-testid="previous-page"
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 className={`px-4 py-2 rounded ${
@@ -31,6 +32,7 @@ const Pagination = ({ currentPage, lastPage, onPageChange }) => {
             ))}
 
             <button
+                data-testid="next-page"
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === lastPage}
                 className={`px-4 py-2 rounded ${
@@ -44,4 +46,4 @@ const Pagination = ({ currentPage, lastPage, onPageChange }) => {
     )
 }
 
-export default Pagination 
+export default Pagination

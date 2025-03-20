@@ -88,7 +88,7 @@ const Navigation = ({ user }) => {
                             <>
                                 {user?.role === 'customer' ? (
                                     <> 
-                                    <FavoritesIcon />
+                                    <FavoritesIcon data-testid="favorites-icon"/>
                                     <CartIcon cartCount={cartCount} />
                                     </>
                                 ) : null}
@@ -190,7 +190,8 @@ const Navigation = ({ user }) => {
                                     </ResponsiveNavLink>
                                     <ResponsiveNavLink
                                     href="/dashboard/favorites"
-                                    active={pathname === '/dashboard/favorites'}>
+                                    active={pathname === '/dashboard/favorites'} data-testid="favorites-icon">
+                                        
                                     Избранные{' '}
                                     
                                 </ResponsiveNavLink>
