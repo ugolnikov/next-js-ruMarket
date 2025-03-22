@@ -107,7 +107,7 @@ const Products = () => {
                 </motion.div>
             </AnimatePresence>
             {(() => {
-                if (currentPage === 1) return <WelcomeBoard />;
+                if (currentPage === 1 && !searchQuery) return <WelcomeBoard />;
             })()}
             <ProductFilters 
                 onSort={handleSort}

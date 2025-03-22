@@ -107,7 +107,9 @@ export async function PUT(request) {
                 inn: updateData.inn,
                 address: updateData.address,
                 phone: updateData.phone,
-                is_verify: true
+                ...(updateData.role === 'seller' && updateData.inn && updateData.company_name && updateData.phone && updateData.address
+                    ? { is_verify: true }
+                    : {})
             },
             select: {
                 id: true,

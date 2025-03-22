@@ -39,12 +39,26 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const id = params.id
-    await db.removeFromCart(session.user.id, parseInt(id))
+    const cartId = params.cartId // Changed from id to cartId to match params
+    
+    if (!cartId) {
+      return NextResponse.json({ error: 'Cart item ID is required' }, { status: 400 })
+    }
+
+    await prisma.cart_items.delete({
+      where: {
+        id: parseInt(cartId),
+        user_id: session.user.id
+      }
+    })
+
     return NextResponse.json({ message: 'Item removed from cart' })
   } catch (error) {
-    console.error('Error removing from cart:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    console.error('Error removing from cart:', error.message || 'Unknown error')
+    return NextResponse.json({ 
+      error: 'Failed to remove item from cart',
+      details: error.message 
+    }, { status: 500 })
   }
 }
 
@@ -69,4 +83,4 @@ export async function PATCH(request, { params }) {
     console.error('Error updating cart item:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-} 
+}
