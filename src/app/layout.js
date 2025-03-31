@@ -3,6 +3,7 @@ import { CookiesProvider } from 'next-client-cookies/server'
 import '@/app/global.css'
 import { Providers } from './providers'
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
 
 const nunitoFont = Nunito({
     subsets: ['latin'],
@@ -28,6 +29,7 @@ const RootLayout = ({ children }) => {
                     <Providers>
                         {children}
                         <SpeedInsights />
+                        <Analytics />
                     </Providers>
                 </CookiesProvider>
             </body>
