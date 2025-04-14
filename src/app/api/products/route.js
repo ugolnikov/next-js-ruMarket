@@ -94,12 +94,12 @@ export async function GET(request) {
                 per_page: limit
             }
         })
-    } catch (error) {
-        console.error('Error fetching products:', error)
+    } catch (err) {
+        console.error('Error fetching products:', err)
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }
-        )
+          )
     }
 }
 

@@ -14,7 +14,7 @@ const WelcomeBoard = () => {
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % slides.length)
-        }, 5000) // Change slide every 5 seconds
+        }, 7000) 
 
         return () => clearInterval(timer)
     }, [])
