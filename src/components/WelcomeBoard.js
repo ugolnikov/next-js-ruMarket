@@ -20,7 +20,7 @@ const WelcomeBoard = () => {
     }, [])
 
     return (
-        <div className="relative w-full h-[500px] overflow-hidden mb-5 rounded-md">
+        <div className="relative w-full h-[500px] overflow-hidden mb-5 rounded-md hidden md:block">
             {slides.map((slide, index) => (
                 <div
                     key={index}
