@@ -7,7 +7,6 @@ import axios from '@/lib/axios'
 import ImageFallback from '@/components/ImageFallback'
 import { useCart } from '@/hooks/cart'
 import Button from '@/components/Button'
-import Link from 'next/link'
 import FavoriteButton from '@/components/FavoriteButton'
 
 const loadProduct = async (id) => {
@@ -62,6 +61,7 @@ export default function Page({ params }) {
                 if (!response) {
                     setNotFound(true)
                 } else {
+                    console.log('Product loaded:', response)
                     setProduct(response)
                 }
             } catch (error) {
@@ -88,7 +88,11 @@ export default function Page({ params }) {
         )
     if (isError) return <p>Ошибка загрузки товара</p>
     if (!product) return <p>Товар не найден</p>
-    const parsed_description = product.description?.split("\n") || []
+    
+    const imageUrl = product.image_preview ? product.image_preview.replace(/^\/+/, '') : '/images/placeholder.jpg'
+    const sellerLogo = product.seller?.logo ? product.seller.logo.replace(/^\/+/, '') : '/images/default-avatar.png'
+    
+    const parsed_description = product.full_description?.split("\n") || []
     return (
         <div className="container mx-auto px-4 py-8 my-2">
             <div 
@@ -98,7 +102,7 @@ export default function Page({ params }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
                     <div className="relative w-full" style={{ height: '500px' }}>
                         <ImageFallback
-                            src={product.image_preview}
+                            src={imageUrl}
                             alt={product.name}
                             fill
                             style={{ objectFit: 'cover' }}
@@ -149,7 +153,7 @@ export default function Page({ params }) {
                                     <div className="flex items-center space-x-4">
                                         <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-100">
                                             <ImageFallback
-                                                src={product.seller.logo || '/images/default-avatar.png'}
+                                                src={sellerLogo}
                                                 alt={product.seller.company_name || product.seller.name}
                                                 fill
                                                 style={{ objectFit: 'cover' }}

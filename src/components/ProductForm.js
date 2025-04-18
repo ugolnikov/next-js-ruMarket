@@ -1,42 +1,33 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, createRef } from 'react'
 import Button from './Button'
 import Image from 'next/image'
-import axios from 'axios'
+import axios from '@/lib/axios'
+import Loader from './Loader'
+import ImageFallback from './ImageFallback'
 
-export default function ProductForm({ initialData, onSubmit, isLoading }) {
-    const getCsrfToken = async () => {
-        await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/sanctum/csrf-cookie`)
-    }
-    axios.defaults.withCredentials = true
+export default function ProductForm({ initialData = {}, onSubmit, isLoading }) {
+    // Ensure initialData is an object even if null is passed
+    const safeInitialData = initialData || {};
+    
     const [formData, setFormData] = useState({
-        name: '',
-        price: '',
-        description: '',
-        full_description: '',
-        unit: 'штука',
-        image_preview: null,
-        images: [],
-        ...initialData
-    })
-    const [previewImages, setPreviewImages] = useState([])
-    const [previewMainImage, setPreviewMainImage] = useState(null)
+        name: safeInitialData.name || '',
+        price: safeInitialData.price || '',
+        description: safeInitialData.description || '',
+        full_description: safeInitialData.full_description || '',
+        unit: safeInitialData.unit || 'штука',
+        image_preview: safeInitialData.image_preview || '',
+        image_urls: safeInitialData.image_urls || [], // Initialize as empty array
+        // Add any other fields you need
+    });
+    
     const [errors, setErrors] = useState({})
-    const [setIsSubmitting] = useState(false)
+    const [uploadingPreview, setUploadingPreview] = useState(false)
+    const [uploadingImages, setUploadingImages] = useState([])
+    
+    const previewFileInputRef = useRef(null)
+    const additionalFileInputRefs = useRef([])
 
-    useEffect(() => {
-        if (initialData?.images) {
-            try {
-                const parsedImages = JSON.parse(initialData.images)
-                setPreviewImages(parsedImages)
-            } catch (e) {
-                throw new Error('Ошибка парсинга изображений:', e)
-            }
-        }
-        if (initialData?.image_preview) {
-            setPreviewMainImage(initialData.image_preview)
-        }
-    }, [initialData])
-
+    // Обработчик для обычных полей формы
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData(prev => ({
@@ -48,111 +39,139 @@ export default function ProductForm({ initialData, onSubmit, isLoading }) {
             [name]: undefined
         }))
     }
-
-    const handleMainImageChange = (event) => {
-        const file = event.target.files[0]
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                setErrors((prev) => ({
-                    ...prev,
-                    image_preview: 'Размер файла не должен превышать 5MB',
-                }))
-                return
-            }
-            if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
-                setErrors((prev) => ({
-                    ...prev,
-                    image_preview: 'Допускаются только изображения JPEG или PNG',
-                }))
-                return
-            }
-            uploadImage(file, 'main')
-        }
+    
+    // Обработчик для URL изображений
+    const handleImageUrlChange = (index, value) => {
+        const newImageUrls = [...formData.image_urls]
+        newImageUrls[index] = value
+        setFormData(prev => ({ ...prev, image_urls: newImageUrls }))
+    }
+    
+    // Добавление нового поля для URL изображения
+    const addImageUrl = () => {
+        setFormData(prev => ({
+            ...prev,
+            image_urls: [...(prev.image_urls || []), '']
+        }))
+        setUploadingImages(prev => [...prev, false])
+        
+        // Добавляем новый ref для нового поля
+        additionalFileInputRefs.current.push(React.createRef())
+    }
+    
+    // Удаление URL изображения
+    const removeImageUrl = (index) => {
+        const newImageUrls = [...formData.image_urls]
+        newImageUrls.splice(index, 1)
+        setFormData(prev => ({ ...prev, image_urls: newImageUrls }))
+        
+        const newUploadingImages = [...uploadingImages]
+        newUploadingImages.splice(index, 1)
+        setUploadingImages(newUploadingImages)
+        
+        // Удаляем ref
+        additionalFileInputRefs.current.splice(index, 1)
     }
 
-    const handleAdditionalImagesChange = (event) => {
-        const files = Array.from(event.target.files)
-        const validFiles = files.filter(
-            (file) =>
-                file.size <= 5 * 1024 * 1024 &&
-                ['image/jpeg', 'image/png'].includes(file.type),
-        )
-        if (validFiles.length === 0) {
-            setErrors((prev) => ({
-                ...prev,
-                images: 'Добавьте файлы JPEG или PNG размером до 5MB',
-            }))
-            return
-        }
-        validFiles.forEach((file) => uploadImage(file, 'additional'))
-    }
-
-    const uploadImage = async (file, type) => {
+    // Загрузка превью изображения
+    const handlePreviewUpload = async (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+        
+        setUploadingPreview(true)
+        
         try {
-            await getCsrfToken()
-            setIsSubmitting(true)
             const formData = new FormData()
-            formData.append('image', file)
-
-            const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/upload/image`,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                },
-            )
-
-            if (type === 'main') {
-                setPreviewMainImage(process.env.NEXT_PUBLIC_API_URL + response.data.imageUrl)
-                setFormData((prev) => ({
+            formData.append('file', file)
+            
+            const response = await axios.post('/api/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            
+            if (response.data.success) {
+                setFormData(prev => ({
                     ...prev,
-                    image_preview: process.env.NEXT_PUBLIC_API_URL + response.data.imageUrl,
-                }))
-            } else if (type === 'additional') {
-                setPreviewImages((prev) => [...prev, process.env.NEXT_PUBLIC_API_URL + response.data.imageUrl])
-                setFormData((prev) => ({
-                    ...prev,
-                    images: [...(prev.images || []), process.env.NEXT_PUBLIC_API_URL + response.data.imageUrl],
+                    image_preview: response.data.url
                 }))
             }
         } catch (error) {
-            setErrors((prev) => ({
+            console.error('Error uploading preview image:', error)
+            setErrors(prev => ({
                 ...prev,
-                [type === 'main' ? 'image_preview' : 'images']:
-                    'Произошла ошибка при загрузке изображения',
+                image_preview: 'Ошибка загрузки изображения'
             }))
-            throw new Error('Ошибка загрузки изображения:', error)
         } finally {
-            setIsSubmitting(false)
+            setUploadingPreview(false)
+        }
+    }
+    
+    // Загрузка дополнительного изображения
+    const handleAdditionalImageUpload = async (index, e) => {
+        const file = e.target.files[0]
+        if (!file) return
+        
+        // Обновляем состояние загрузки для конкретного изображения
+        const newUploadingImages = [...uploadingImages]
+        newUploadingImages[index] = true
+        setUploadingImages(newUploadingImages)
+        
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            
+            const response = await axios.post('/api/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            
+            if (response.data.success) {
+                const newImageUrls = [...formData.image_urls]
+                newImageUrls[index] = response.data.url
+                setFormData(prev => ({
+                    ...prev,
+                    image_urls: newImageUrls
+                }))
+            }
+        } catch (error) {
+            console.error('Error uploading additional image:', error)
+        } finally {
+            newUploadingImages[index] = false
+            setUploadingImages(newUploadingImages)
         }
     }
 
-    const removeImage = (index) => {
-        setPreviewImages(prev => prev.filter((_, i) => i !== index))
-        setFormData(prev => ({
-            ...prev,
-            images: prev.images.filter((_, i) => i !== index)
-        }))
-    }
+    // Инициализация refs для дополнительных изображений
+    useEffect(() => {
+        additionalFileInputRefs.current = formData.image_urls.map(() => createRef())
+        setUploadingImages(formData.image_urls.map(() => false))
+    }, [])
 
+    // Валидация и отправка формы
     const handleSubmit = async (e) => {
         e.preventDefault()
         const validationErrors = {}
 
         if (!formData.name) validationErrors.name = 'Введите название товара'
         if (!formData.price) validationErrors.price = 'Введите цену'
-        if (!formData.description) validationErrors.description = 'Введите краткое описан��е'
+        if (!formData.description) validationErrors.description = 'Введите краткое описание'
         if (!formData.full_description) validationErrors.full_description = 'Введите полное описание'
-        if (previewImages.length === 0) validationErrors.images = 'Добавьте хотя бы одно изображение'
+        if (!formData.image_preview) validationErrors.image_preview = 'Добавьте главное изображение'
 
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors)
             return
         }
 
-        onSubmit(formData)
+        // Подготовка данных для отправки
+        const dataToSubmit = {
+            ...formData,
+            images: formData.image_urls.filter(url => url.trim() !== '')
+        }
+        
+        onSubmit(dataToSubmit)
     }
 
     return (
@@ -169,7 +188,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading }) {
                 />
                 {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
-
+        
             <div>
                 <label className="block text-sm font-medium text-gray-700">Цена</label>
                 <input
@@ -182,7 +201,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading }) {
                 />
                 {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
             </div>
-
+        
             <div>
                 <label className="block text-sm font-medium text-gray-700">Единица измерения</label>
                 <select
@@ -194,7 +213,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading }) {
                     <option value="упаковка">упаковка</option>
                 </select>
             </div>
-
+        
             <div>
                 <label className="block text-sm font-medium text-gray-700">Краткое описание</label>
                 <textarea
@@ -207,7 +226,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading }) {
                 />
                 {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
             </div>
-
+        
             <div>
                 <label className="block text-sm font-medium text-gray-700">Полное описание</label>
                 <textarea
@@ -220,105 +239,129 @@ export default function ProductForm({ initialData, onSubmit, isLoading }) {
                 />
                 {errors.full_description && <p className="mt-1 text-sm text-red-600">{errors.full_description}</p>}
             </div>
-
+        
             <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Главное изображение товара
-                    </label>
-                    <div className="relative w-full h-64 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleMainImageChange}
-                            className="absolute inset-0 w-full h-full opacity-0 z-50 cursor-pointer"
-                        />
-                        {previewMainImage ? (
-                            <div className="relative w-full h-full">
-                                <Image
-                                    src={previewMainImage}
-                                    alt="Главное изображение"
-                                    fill
-                                    style={{ objectFit: 'contain' }}
-                                    className="object-contain"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setPreviewMainImage(null)
-                                        setFormData(prev => ({ ...prev, image_preview: null }))
-                                    }}
-                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600">
-                                    ✕
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full">
-                                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                <label className="block text-sm font-medium text-gray-700">
+                    Главное изображение
+                </label>
+                
+                <div className="flex items-center space-x-4">
+                    <input
+                        type="text"
+                        name="image_preview"
+                        value={formData.image_preview}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4438ca] focus:ring-[#4438ca]"
+                        placeholder="URL изображения или загрузите файл"
+                    />
+                    <input 
+                        type="file"
+                        accept="image/*"
+                        ref={previewFileInputRef}
+                        onChange={handlePreviewUpload}
+                        className="hidden"
+                    />
+                    <Button
+                        type="button"
+                        onClick={() => previewFileInputRef.current.click()}
+                        disabled={uploadingPreview}
+                        className="whitespace-nowrap"
+                    >
+                        {uploadingPreview ? 'Загрузка...' : 'Загрузить'}
+                    </Button>
+                </div>
+                
+                {formData.image_preview && (
+                    <div className="mt-2">
+                        <p className="text-sm text-gray-500">Предпросмотр:</p>
+                        <div className="relative w-full h-64 mt-2">
+                            <ImageFallback 
+                                src={formData.image_preview} 
+                                alt="Preview" 
+                                fill
+                                style={{ objectFit: 'contain' }}
+                                className="rounded-lg"
+                            />
+                        </div>
+                    </div>
+                )}
+                {errors.image_preview && <p className="mt-1 text-sm text-red-600">{errors.image_preview}</p>}
+            </div>
+            
+            <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700">
+                    Дополнительные изображения
+                </label>
+                
+                {formData.image_urls && formData.image_urls.map((url, index) => (
+                    <div key={index} className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="text"
+                                value={url}
+                                onChange={(e) => handleImageUrlChange(index, e.target.value)}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4438ca] focus:ring-[#4438ca]"
+                                placeholder="URL изображения или загрузите файл"
+                            />
+                            <input 
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleAdditionalImageUpload(index, e)}
+                                className="hidden"
+                                ref={el => additionalFileInputRefs.current[index] = el}
+                            />
+                            <Button
+                                type="button"
+                                onClick={() => additionalFileInputRefs.current[index].click()}
+                                disabled={uploadingImages[index]}
+                                className="whitespace-nowrap"
+                            >
+                                {uploadingImages[index] ? 'Загрузка...' : 'Загрузить'}
+                            </Button>
+                            <button
+                                type="button"
+                                onClick={() => removeImageUrl(index)}
+                                className="p-2 text-red-500 hover:text-red-700"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                                 </svg>
-                                <span className="mt-2 text-gray-500">Нажмите для загрузки главного изображения</span>
+                            </button>
+                        </div>
+                        
+                        {url && (
+                            <div className="mt-2">
+                                <div className="relative w-full h-32">
+                                    <ImageFallback 
+                                        src={url} 
+                                        alt={`Image ${index + 1}`} 
+                                        fill
+                                        style={{ objectFit: 'contain' }}
+                                        className="rounded-lg"
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
-                    {errors.image_preview && (
-                        <p className="mt-1 text-sm text-red-600">{errors.image_preview}</p>
-                    )}
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Дополнительные изображения
-                    </label>
-                    <div className="grid grid-cols-3 gap-4">
-                        {previewImages.map((image, index) => (
-                            <div key={index} className="relative aspect-square">
-                                <Image
-                                    src={image}
-                                    alt={`Preview ${index + 1}`}
-                                    fill
-                                    sizes='(max-width: 768px)'
-                                    style={{ objectFit: 'cover' }}
-                                    className="rounded-lg"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => removeImage(index)}
-                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600">
-                                    ✕
-                                </button>
-                            </div>
-                        ))}
-                        <div className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg">
-                            <input
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={handleAdditionalImagesChange}
-                                className="absolute inset-0 w-full h-full opacity-0 z-50 cursor-pointer"
-                            />
-                            <div className="flex flex-col items-center justify-center h-full">
-                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                                </svg>
-                                <span className="mt-2 text-xs text-gray-500 text-center">Добавить фото</span>
-                            </div>
-                        </div>
-                    </div>
-                    {errors.images && (
-                        <p className="mt-1 text-sm text-red-600">{errors.images}</p>
-                    )}
-                </div>
+                ))}
+                
+                <button
+                    type="button"
+                    onClick={addImageUrl}
+                    className="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                    Добавить еще изображение
+                </button>
             </div>
-
+        
             <div className="flex justify-end">
                 <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || uploadingPreview || uploadingImages.some(status => status)}
                     className="rounded">
                     {isLoading ? 'Сохранение...' : 'Сохранить'}
                 </Button>
             </div>
         </form>
     )
-} 
+}

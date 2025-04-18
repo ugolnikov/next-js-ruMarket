@@ -315,5 +315,26 @@ export const db = {
     return await prisma.product.delete({
       where: { id }
     })
-  }
-} 
+  },
+
+  async getSellerProducts(sellerId, { page = 1, limit = 10 } = {}) {
+      const skip = (page - 1) * limit
+      
+      const [products, total] = await Promise.all([
+        prisma.product.findMany({
+          where: { seller_id: sellerId },
+          skip,
+          take: limit,
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }),
+        prisma.product.count({ where: { seller_id: sellerId } })
+      ])
+      
+      return {
+        products,
+        total
+      }
+    }
+}

@@ -15,39 +15,34 @@ export default function CreateProduct() {
     const handleSubmit = async (formData) => {
         setIsLoading(true)
         try {
-            const form = new FormData()
-            
-            form.append('name', formData.name)
-            form.append('price', formData.price)
-            form.append('unit', formData.unit)
-            form.append('short_description', formData.description)
-            form.append('full_description', formData.full_description)
-
-            if (formData.image_preview) {
-                form.append('image_preview', formData.image_preview)
+            // Ensure all required fields are present and properly formatted
+            // Remove fields that don't exist in the database schema
+            const productData = {
+                name: formData.name,
+                price: parseFloat(formData.price), // Ensure price is a number
+                unit: formData.unit,
+                description: formData.description,
+                full_description: formData.full_description || formData.description,
+                image_preview: formData.image_preview
+                // Removed 'images' field as it doesn't exist in your database schema
             }
-
-            if (formData.images && formData.images.length > 0) {
-                formData.images.forEach((image, index) => {
-                    form.append(`images[${index}]`, image)
-                })
-            }
-
-            await axios.post('/api/seller/products', form, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            })
+    
+            // Log the data being sent for debugging
+            console.log('Sending product data:', productData)
+    
+            const response = await axios.post('/api/seller/products', productData)
             
             setModalMessage('Товар успешно создан!')
             setShowModal(true)
+            
+            // Перенаправление после закрытия модального окна
             setTimeout(() => {
                 router.push('/dashboard/goods')
             }, 2000)
         } catch (error) {
-            setModalMessage('Ошибка при создании товара')
+            console.error('Error creating product:', error)
+            setModalMessage('Ошибка при создании товара: ' + (error.response?.data?.error || error.message))
             setShowModal(true)
-            throw new Error('Ошибка при создании товара:', error)
         } finally {
             setIsLoading(false)
         }
@@ -55,23 +50,27 @@ export default function CreateProduct() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <Button
-                onClick={() => router.back()}
-                className="mb-6 rounded">
-                Назад
-            </Button>
-
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <h1 className="text-2xl font-bold mb-6">Создание товара</h1>
-                <ProductForm onSubmit={handleSubmit} isLoading={isLoading} />
+            <h1 className="text-2xl font-bold mb-6">Создание нового товара</h1>
+            
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <ProductForm 
+                    onSubmit={handleSubmit}
+                    isLoading={isLoading}
+                />
             </div>
-
+            
             <Modal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
-                title="Уведомление">
+                title="Уведомление"
+            >
                 <p>{modalMessage}</p>
+                <div className="mt-4 flex justify-end">
+                    <Button onClick={() => setShowModal(false)}>
+                        Закрыть
+                    </Button>
+                </div>
             </Modal>
         </div>
     )
-} 
+}

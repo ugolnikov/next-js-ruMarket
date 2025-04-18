@@ -3,7 +3,15 @@ const nextConfig = {
     reactStrictMode: true,
     output: 'standalone',
     images: {
-        domains: ['parpol.ru', 'placeholder.com', 'via.placeholder.com', 'placehold.co', 'localhost', 'stokenwmuhlhaubnvubs.supabase.co'],
+        domains: [
+            'parpol.ru', 
+            'placeholder.com', 
+            'via.placeholder.com', 
+            'placehold.co', 
+            'localhost', 
+            'stokenwmuhlhaubnvubs.supabase.co',
+            'img.favpng.com'
+        ],
         remotePatterns: [
             {
                 protocol: 'https',
@@ -18,6 +26,11 @@ const nextConfig = {
             {
                 protocol: 'https',
                 hostname: 'stokenwmuhlhaubnvubs.supabase.co',
+                pathname: '/**',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.supabase.co',
                 pathname: '/**',
             }
         ]
