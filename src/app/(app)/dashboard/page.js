@@ -367,7 +367,31 @@ const Dashboard = () => {
                                         </div>
                                         {/* Основная информация */}
                                         <div className="pt-16 pb-8 px-4 sm:px-8">
-                                            <div className="flex-col flex sm:grid sm:grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="m-4 flex justify-center space-x-2 mb-4 sm:hidden">
+                                                        <button
+                                                            type="button"
+                                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                                                            onClick={() => fileInputRef.current.click()}
+                                                            disabled={logoUploading}
+                                                        >
+                                                            <PlusIcon className="w-4 h-4 mr-1" />
+                                                            Загрузить логотип
+                                                        </button>
+                                                        
+                                                        {user?.logo && (
+                                                            <button
+                                                                type="button"
+                                                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                                                                onClick={handleRemoveLogo}
+                                                                disabled={logoUploading}
+                                                            >
+                                                                <XMarkIcon className="w-4 h-4 mr-1" />
+                                                                Удалить логотип
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                            <div className="flex-col flex sm:grid sm:grid-cols-1 md:grid-cols-2  sm:gap-0 md:gap-8">
+                                                
                                                 {/* Статус верификации */}
                                                 <div className="col-span-2 flex flex-col align-items-center justify-center sm:flex-row mb-4 sm:mb-0 w-full items-center sm:justify-evenly">
                                                     <div
