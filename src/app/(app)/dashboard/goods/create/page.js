@@ -26,9 +26,7 @@ export default function CreateProduct() {
                 image_preview: formData.image_preview
                 // Removed 'images' field as it doesn't exist in your database schema
             }
-    
-            // Log the data being sent for debugging
-            console.log('Sending product data:', productData)
+
     
             const response = await axios.post('/api/seller/products', productData)
             

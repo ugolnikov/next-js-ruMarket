@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { prisma } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -31,7 +32,7 @@ export async function PUT(request, { params }) {
 }
 
 // Удаление из корзины
-export async function DELETE(request, { params }) {
+async function DELETE(request, { params }) {
   try {
     const session = await auth()
     
@@ -39,7 +40,9 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const cartId = params.cartId // Changed from id to cartId to match params
+    // Fix: Await params before accessing cartId
+    const resolvedParams = await params
+    const cartId = resolvedParams.cartId
     
     if (!cartId) {
       return NextResponse.json({ error: 'Cart item ID is required' }, { status: 400 })
@@ -56,12 +59,13 @@ export async function DELETE(request, { params }) {
   } catch (error) {
     console.error('Error removing from cart:', error.message || 'Unknown error')
     return NextResponse.json({ 
-      error: 'Failed to remove item from cart',
+      error: 'Internal Server Error', 
       details: error.message 
     }, { status: 500 })
   }
 }
 
+export { DELETE }
 export async function PATCH(request, { params }) {
   const session = await auth()
   

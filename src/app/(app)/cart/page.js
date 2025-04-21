@@ -87,6 +87,8 @@ const CartPage = () => {
                                         src={firstImage}
                                         alt={item.product.name}
                                         fill
+                                        sizes='(100w) 100vw'
+                                        priority={true}
                                         style={{ objectFit: 'cover' }}
                                         className="object-cover rounded-lg"
                                     />

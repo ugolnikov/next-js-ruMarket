@@ -6,11 +6,12 @@ import Button from '@/components/Button'
 import axios from '@/lib/axios'
 import { useRouter } from 'next/navigation'
 import Loader from '@/components/Loader'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import debounce from 'lodash/debounce'
 import { signOut } from 'next-auth/react';
+import { PlusIcon, XMarkIcon } from '@heroicons/react/24/solid' // Add heroicons if not present
 
 const Dashboard = () => {
     const { user, mutate, isLoading, updatePhone } = useAuth()
@@ -22,6 +23,9 @@ const Dashboard = () => {
     const [newPhone, setNewPhone] = useState('')
     const [phoneError, setPhoneError] = useState('')
     const [phoneSuccess, setPhoneSuccess] = useState(false)
+    const [logoHover, setLogoHover] = useState(false)
+    const [logoUploading, setLogoUploading] = useState(false)
+    const fileInputRef = useRef(null)
 
     // Создаем функцию debounce для поиска
     const debouncedSearch = useCallback(
@@ -129,6 +133,51 @@ const Dashboard = () => {
             console.error('Error changing role:', error);
         }
     };
+
+    // Upload logo handler using supabaseStorage via /api/upload
+    const handleLogoChange = async (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+        setLogoUploading(true)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            
+            // First upload the file to get the URL
+            const uploadRes = await axios.post('/api/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            
+            if (uploadRes.data?.url) {
+                // Then update the user profile with the logo URL
+                await axios.put('/api/user/profile', {
+                    logo: uploadRes.data.url
+                })
+                
+                // Refresh user data
+                mutate()
+            }
+        } catch (error) {
+            console.error('Error uploading logo:', error.response?.data || error.message)
+        } finally {
+            setLogoUploading(false)
+        }
+    }
+
+    // Remove logo handler
+    const handleRemoveLogo = async () => {
+        setLogoUploading(true)
+        try {
+            await axios.put('/api/user/profile', { logo: null })
+            mutate()
+        } catch (error) {
+            console.error('Error removing logo:', error)
+        } finally {
+            setLogoUploading(false)
+        }
+    }
     
     if (!user || ordersLoading) return <Loader />
     return (
@@ -233,33 +282,81 @@ const Dashboard = () => {
                             {user?.role === 'seller' && (
                                 <div className="mt-8">
                                     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                                        {/* Шапка с логотипом и названием компании */}
+                                        {/* Header with logo and company name */}
                                         <div className="relative h-48 bg-gradient-to-r from-[#4438ca] to-[#6d64ff]">
-                                            <div className="absolute -bottom-12 left-8">
-                                                {user?.logo ? (
-                                                    <Image
-                                                        src={user.logo}
-                                                        alt="Логотип компании"
-                                                        width="200"
-                                                        height="200"
-                                                        className="w-24 h-24 rounded-lg border-4 border-white shadow-lg object-cover bg-white"
+                                            <div
+                                                className="absolute -bottom-12 left-8"
+                                                onMouseEnter={() => setLogoHover(true)}
+                                                onMouseLeave={() => setLogoHover(false)}
+                                            >
+                                                <div className="relative w-24 h-24">
+                                                    {user?.logo ? (
+                                                        <Image
+                                                            src={user.logo}
+                                                            alt="Логотип компании"
+                                                            width={200}
+                                                            height={200}
+                                                            className="w-24 h-24 rounded-lg border-4 border-white shadow-lg object-cover bg-white"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-24 h-24 rounded-lg border-4 border-white shadow-lg bg-gray-100 flex items-center justify-center">
+                                                            <svg
+                                                                className="w-12 h-12 text-gray-400"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth="2"
+                                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                                />
+                                                            </svg>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Only show overlay when hovering OR when there's no logo */}
+                                                    {(logoHover || !user?.logo) && (
+                                                        <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg">
+                                                            <button
+                                                                type="button"
+                                                                className="text-white bg-indigo-600 hover:bg-indigo-700 rounded-full p-2"
+                                                                onClick={() => fileInputRef.current.click()}
+                                                                disabled={logoUploading}
+                                                                title="Загрузить логотип"
+                                                            >
+                                                                <PlusIcon className="w-5 h-5" />
+                                                            </button>
+                                                            
+                                                            {user?.logo && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="text-white bg-red-600 hover:bg-red-700 rounded-full p-2 absolute top-2 right-2"
+                                                                    onClick={handleRemoveLogo}
+                                                                    disabled={logoUploading}
+                                                                    title="Удалить логотип"
+                                                                >
+                                                                    <XMarkIcon className="w-2 h-2" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        ref={fileInputRef}
+                                                        className="hidden"
+                                                        onChange={handleLogoChange}
+                                                        disabled={logoUploading}
                                                     />
-                                                ) : (
-                                                    <div className="w-24 h-24 rounded-lg border-4 border-white shadow-lg bg-gray-100 flex items-center justify-center">
-                                                        <svg
-                                                            className="w-12 h-12 text-gray-400"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth="2"
-                                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                            />
-                                                        </svg>
-                                                    </div>
-                                                )}
+                                                    
+                                                    {logoUploading && (
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 rounded-lg">
+                                                            <Loader />
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="absolute bottom-4 left-40">
                                                 <h3 className="text-xl sm:text-2xl font-bold text-white">
@@ -268,7 +365,6 @@ const Dashboard = () => {
                                                 </h3>
                                             </div>
                                         </div>
-
                                         {/* Основная информация */}
                                         <div className="pt-16 pb-8 px-4 sm:px-8">
                                             <div className="flex-col flex sm:grid sm:grid-cols-1 md:grid-cols-2 gap-8">
@@ -445,4 +541,6 @@ const Dashboard = () => {
     )
 }
 
+
 export default Dashboard
+

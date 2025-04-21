@@ -87,10 +87,10 @@ export default function RequestsPage() {
                             {requests.map(request => (
                                 <tr key={request.id} className="border-b border-gray-300 hover:bg-gray-100">
                                     <td className="py-3 px-6">{request.id}</td>
-                                    <td className="py-3 px-6">{request.product_name}</td>
-                                    <td className="py-3 px-6">{request.price}₽</td>
-                                    <td className="py-3 px-6">{request.quantity}</td>
-                                    <td className="py-3 px-6">{request.total}₽</td>
+                                    <td className="py-3 px-6">{request.items[0].product.name}</td>
+                                    <td className="py-3 px-6">{request.items[0].price}₽</td>
+                                    <td className="py-3 px-6">{request.items[0].quantity}</td>
+                                    <td className="py-3 px-6">{(request.items[0].price * request.items[0].quantity)}₽</td>
                                     <td className="py-3 px-6">{request.address}</td>
                                     <td className="py-3 px-6">{request.is_send ? (<span className='text-green-600'>Отправлен</span>) : (<span className='text-red-600'>Не отправлен</span>)}</td>
                                     {!request.is_send &&

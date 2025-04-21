@@ -90,9 +90,6 @@ export async function POST(request) {
             is_published: true
         }
 
-        // Log the data being sent to Prisma for debugging
-        console.log('Creating product with data:', productData)
-
         const product = await prisma.product.create({
             data: productData
         })

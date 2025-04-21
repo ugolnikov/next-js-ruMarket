@@ -61,7 +61,6 @@ export default function Page({ params }) {
                 if (!response) {
                     setNotFound(true)
                 } else {
-                    console.log('Product loaded:', response)
                     setProduct(response)
                 }
             } catch (error) {
@@ -105,6 +104,8 @@ export default function Page({ params }) {
                             src={imageUrl}
                             alt={product.name}
                             fill
+                            sizes='(100w) 100vw'
+                            priority={true}
                             style={{ objectFit: 'cover' }}
                             className="rounded"
                         />
@@ -113,7 +114,10 @@ export default function Page({ params }) {
                         <div>
                             <div className="flex justify-between items-start mb-4">
                                 <h1 className="text-3xl font-bold">{product.name}</h1>
-                                <FavoriteButton productId={product.id} />
+                                {user?.role === 'customer' && (
+                                    <FavoriteButton productId={product.id} />
+                                )}
+                                
                             </div>
                             <div className="text-gray-600 mb-6 text-lg">
                                 {parsed_description.map((element, index) => (
@@ -156,6 +160,8 @@ export default function Page({ params }) {
                                                 src={sellerLogo}
                                                 alt={product.seller.company_name || product.seller.name}
                                                 fill
+                                                sizes='(100w) 100vw'
+                                                priority={true}
                                                 style={{ objectFit: 'cover' }}
                                                 className="rounded-full"
                                             />

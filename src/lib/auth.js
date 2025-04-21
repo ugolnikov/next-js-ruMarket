@@ -42,7 +42,8 @@ export const { auth, handlers: { GET, POST }, signIn, signOut } = NextAuth({
                     role: user.role,
                     phone: user.phone,
                     is_verify: user.is_verify, // Add is_verify to the session
-                    company_name: user.company_name, // Add company_name as well
+                    company_name: user.company_name,
+                    logo: user.logo, 
                     inn: user.inn, // Add inn
                     address: user.address // Add address
                 }
@@ -64,7 +65,8 @@ export const { auth, handlers: { GET, POST }, signIn, signOut } = NextAuth({
                     role: user.role,
                     phone: user.phone,
                     is_verify: user.is_verify, // Add is_verify to the session
-                    company_name: user.company_name, // Add company_name as well
+                    company_name: user.company_name,
+                    logo: user.logo, 
                     inn: user.inn, // Add inn
                     address: user.address // Add address
                 }
