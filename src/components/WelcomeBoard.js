@@ -6,9 +6,9 @@ const WelcomeBoard = () => {
     const [currentSlide, setCurrentSlide] = useState(0)
 
     const slides = [
-        '/images/slider/slide1.jpg',
-        '/images/slider/slide2.jpg',
         '/images/slider/slide3.jpg',
+        '/images/slider/slide2.jpg',
+        '/images/slider/slide1.jpg',
     ]
 
     useEffect(() => {
@@ -20,7 +20,7 @@ const WelcomeBoard = () => {
     }, [])
 
     return (
-        <div className="relative w-full h-[500px] overflow-hidden mb-5 rounded-md hidden md:block">
+        <div className="relative w-full h-[670px] overflow-hidden mb-5 rounded-md hidden md:block">
             {slides.map((slide, index) => (
                 <div
                     key={index}
@@ -32,7 +32,7 @@ const WelcomeBoard = () => {
                         src={slide}
                         alt={`Slide ${index + 1}`}
                         fill
-                        style={{ objectFit: 'cover' }}
+                        style={{ objectFit: 'cover', objectPosition: 'center' }}
                         priority={index === 0}
                         quality={100}
                     />

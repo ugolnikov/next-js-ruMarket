@@ -19,30 +19,30 @@ const Products = () => {
     const [priceRange, setPriceRange] = useState('all')
     const [filterState, setFilterState] = useState({
         currentRange: { min: 0, max: 100000 },
-        isFiltered: false
+        isFiltered: false,
     })
     const [clickedProductId, setClickedProductId] = useState(null)
     const router = useRouter()
 
-    const handleProductClick = (productId) => {
+    const handleProductClick = productId => {
         setClickedProductId(productId)
         router.push(`/product/${productId}`)
     }
     // Add debounced search function
     const debouncedSearch = useCallback(
-        debounce((query) => {
+        debounce(query => {
             setDebouncedSearchQuery(query)
         }, 500),
-        []
+        [],
     )
 
-    const handleSearchChange = (e) => {
+    const handleSearchChange = e => {
         const value = e.target.value
         setSearchQuery(value)
         debouncedSearch(value)
     }
 
-    const handleSort = (newSortType) => {
+    const handleSort = newSortType => {
         setSortType(newSortType)
         setCurrentPage(1)
     }
@@ -51,11 +51,20 @@ const Products = () => {
         setPriceRange(range)
         setFilterState({ currentRange, isFiltered })
         setCurrentPage(1)
-    }   
+    }
 
-    const { data: products, error, isLoading } = useSWR(
+    const {
+        data: products,
+        error,
+        isLoading,
+    } = useSWR(
         `/api/products?page=${currentPage}&search=${debouncedSearchQuery}&sort=${sortType}&priceRange=${priceRange}`,
-        () => axios.get(`/api/products?page=${currentPage}&search=${debouncedSearchQuery}&sort=${sortType}&priceRange=${priceRange}`).then(res => res.data),
+        () =>
+            axios
+                .get(
+                    `/api/products?page=${currentPage}&search=${debouncedSearchQuery}&sort=${sortType}&priceRange=${priceRange}`,
+                )
+                .then(res => res.data),
     )
     if (isLoading) return <Loader />
     if (error) return <div>Ошибка загрузки товаров</div>
@@ -63,12 +72,11 @@ const Products = () => {
     return (
         <div className="container mx-auto px-4 py-4">
             <AnimatePresence>
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="relative mb-6 group"
-                >
+                    className="relative mb-6 group">
                     <div className="relative">
                         <input
                             type="text"
@@ -77,18 +85,16 @@ const Products = () => {
                             value={searchQuery}
                             onChange={handleSearchChange}
                         />
-                        <motion.div 
+                        <motion.div
                             className="absolute right-4 top-1/2 transform -translate-y-1/2"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            style={{ translateY: '-50%' }}
-                        >
+                            style={{ translateY: '-50%' }}>
                             <svg
                                 className="w-6 h-6 text-[#4438ca] transition-colors duration-300"
                                 fill="none"
                                 stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
+                                viewBox="0 0 24 24">
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
@@ -98,7 +104,7 @@ const Products = () => {
                             </svg>
                         </motion.div>
                     </div>
-                    <motion.div 
+                    <motion.div
                         className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#4438ca] origin-left"
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: searchQuery ? 1 : 0 }}
@@ -106,28 +112,33 @@ const Products = () => {
                     />
                 </motion.div>
             </AnimatePresence>
-            {(() => {
-                if (currentPage === 1 && !searchQuery) return <WelcomeBoard />;
-            })()}
-            <ProductFilters 
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}>
+                {(() => {
+                    if (currentPage === 1 && !searchQuery)
+                        return <WelcomeBoard />
+                })()}
+            </motion.div>
+
+            <ProductFilters
                 onSort={handleSort}
                 onFilter={handlePriceFilter}
                 filterState={filterState}
-                initialSort={sortType}  // Pass the current sort value
+                initialSort={sortType} // Pass the current sort value
             />
-            
+
             {products?.data?.length === 0 ? (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center py-12"
-                >
-                    <svg 
+                    className="text-center py-12">
+                    <svg
                         className="w-16 h-16 mx-auto text-gray-400 mb-4"
                         fill="none"
                         stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
+                        viewBox="0 0 24 24">
                         <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -150,16 +161,14 @@ const Products = () => {
                             initial={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => handleProductClick(product.id)}
-                            className="relative"
-                        >
+                            className="relative">
                             <ProductCard product={product} />
                             {clickedProductId === product.id && (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center"
-                                >
-                                    <div className="w-6 h-6 border-2 border-[#4438ca] border-t-transparent rounded-full animate-spin"/>
+                                    className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                                    <div className="w-6 h-6 border-2 border-[#4438ca] border-t-transparent rounded-full animate-spin" />
                                 </motion.div>
                             )}
                         </motion.div>
