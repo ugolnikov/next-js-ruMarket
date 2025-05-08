@@ -49,7 +49,7 @@ async function migrateData() {
         description: product.description || '',
         full_description: product.full_description || '',
         price: Number(product.price),
-        unit: product.unit || 'шт',
+        unit: product.unit || 'штука',
         image_preview: product.image_preview || null,
         is_published: true,
         seller_id: Number(product.sellerId) || 1,

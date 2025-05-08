@@ -49,7 +49,7 @@ export async function GET(request, { params }) {
             ...order,
             id: Number(order.id),
             userId: Number(order.userId),
-            total_amount: Number(order.total_amount),
+            totalAmount: Number(order.totalAmount),
             User: order.User ? {
                 ...order.User,
                 id: Number(order.User.id)
@@ -88,6 +88,7 @@ export async function PUT(request, { params }) {
 
         const resolvedParams = await params
         const orderId = resolvedParams.orderId
+        console.log('Received orderId:', orderId)
         
         if (!orderId) {
             return NextResponse.json({ error: 'Order ID is required' }, { status: 400 })
@@ -98,16 +99,16 @@ export async function PUT(request, { params }) {
         // Only allow updating certain fields
         const { status, tracking_number, notes } = data
         
+        // Create update data object with only defined values
+        const updateData = {}
+        if (status) updateData.status = status
+        
         const order = await prisma.order.update({
             where: { id: BigInt(orderId) },
-            data: {
-                status,
-                tracking_number,
-                notes
-            },
+            data: updateData,
             include: {
                 items: true,
-                User: {
+                user: {
                     select: {
                         id: true,
                         name: true,
@@ -121,17 +122,17 @@ export async function PUT(request, { params }) {
         const serializedOrder = {
             ...order,
             id: Number(order.id),
-            userId: Number(order.userId),
-            total_amount: Number(order.total_amount),
-            User: order.User ? {
-                ...order.User,
-                id: Number(order.User.id)
+            userId: order.userId ? Number(order.userId) : null,
+            totalAmount: Number(order.totalAmount),
+            user: order.user ? {
+                ...order.user,
+                id: Number(order.user.id)
             } : null,
             items: order.items.map(item => ({
                 ...item,
                 id: Number(item.id),
-                order_id: Number(item.order_id),
-                product_id: Number(item.product_id),
+                orderId: item.orderId ? Number(item.orderId) : null,
+                productId: item.productId ? Number(item.productId) : null,
                 price: Number(item.price)
             })),
             createdAt: order.createdAt?.toISOString(),

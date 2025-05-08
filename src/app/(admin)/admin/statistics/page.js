@@ -103,7 +103,7 @@ const StatisticsPage = () => {
         labels: stats.productsByCategory.map(item => item.category),
         datasets: [
             {
-                label: 'Товары по категориям',
+                label: 'Товары по продавцам',
                 data: stats.productsByCategory.map(item => item.count),
                 backgroundColor: [
                     'rgba(255, 99, 132, 0.5)',
@@ -135,244 +135,241 @@ const StatisticsPage = () => {
     }
 
     return (
-        <div>
+        <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-8">Статистика</h1>
             
             <div className="mb-6">
-                <div className="inline-flex rounded-md shadow-sm" role="group">
-                    <button
-                        type="button"
-                        className={`px-4 py-2 text-sm font-medium border ${
-                            period === 'week' 
-                                ? 'bg-indigo-600 text-white border-indigo-600' 
-                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        } rounded-l-lg`}
-                        onClick={() => setPeriod('week')}
+                <div className="flex space-x-4 mb-4">
+                    <button 
+                        onClick={() => setPeriod('week')} 
+                        className={`px-4 py-2 rounded ${period === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
                     >
                         Неделя
                     </button>
-                    <button
-                        type="button"
-                        className={`px-4 py-2 text-sm font-medium border-t border-b border-r ${
-                            period === 'month' 
-                                ? 'bg-indigo-600 text-white border-indigo-600' 
-                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
-                        onClick={() => setPeriod('month')}
+                    <button 
+                        onClick={() => setPeriod('month')} 
+                        className={`px-4 py-2 rounded ${period === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
                     >
                         Месяц
                     </button>
-                    <button
-                        type="button"
-                        className={`px-4 py-2 text-sm font-medium border ${
-                            period === 'year' 
-                                ? 'bg-indigo-600 text-white border-indigo-600' 
-                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        } rounded-r-lg`}
-                        onClick={() => setPeriod('year')}
+                    <button 
+                        onClick={() => setPeriod('year')} 
+                        className={`px-4 py-2 rounded ${period === 'year' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
                     >
                         Год
                     </button>
                 </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard 
-                    title="Выручка" 
-                    value={`₽${stats.totalRevenue.toLocaleString()}`} 
-                    change={stats.revenueChange} 
-                    isPositive={stats.revenueChange >= 0} 
-                />
-                <StatCard 
-                    title="Заказы" 
-                    value={stats.totalOrders} 
-                    change={stats.ordersChange} 
-                    isPositive={stats.ordersChange >= 0} 
-                />
-                <StatCard 
-                    title="Средний чек" 
-                    value={`₽${stats.averageOrderValue.toLocaleString()}`} 
-                    change={stats.aovChange} 
-                    isPositive={stats.aovChange >= 0} 
-                />
-                <StatCard 
-                    title="Новые пользователи" 
-                    value={stats.newUsers} 
-                    change={stats.usersChange} 
-                    isPositive={stats.usersChange >= 0} 
-                />
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-xl font-semibold mb-4">Продажи</h2>
-                    <div className="h-80">
-                        <Line 
-                            data={salesData} 
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true
-                                    }
-                                }
-                            }} 
+            {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                    <Loader />
+                </div>
+            ) : error ? (
+                <div className="text-red-500 text-center p-4">
+                    Ошибка при загрузке данных: {error}
+                </div>
+            ) : stats ? (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <StatCard 
+                            title="Выручка" 
+                            value={`₽${stats.totalRevenue ? stats.totalRevenue.toLocaleString() : '0'}`} 
+                            change={stats.revenueChange || 0} 
+                            isPositive={(stats.revenueChange || 0) >= 0} 
+                        />
+                        <StatCard 
+                            title="Заказы" 
+                            value={stats.totalOrders || 0} 
+                            change={stats.ordersChange || 0} 
+                            isPositive={(stats.ordersChange || 0) >= 0} 
+                        />
+                        <StatCard 
+                            title="Средний чек" 
+                            value={`₽${stats.averageOrderValue ? stats.averageOrderValue.toLocaleString() : '0'}`} 
+                            change={stats.aovChange || 0} 
+                            isPositive={(stats.aovChange || 0) >= 0} 
+                        />
+                        <StatCard 
+                            title="Новые пользователи" 
+                            value={stats.newUsers || 0} 
+                            change={stats.usersChange || 0} 
+                            isPositive={(stats.usersChange || 0) >= 0} 
                         />
                     </div>
-                </div>
-                
-                <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-xl font-semibold mb-4">Заказы</h2>
-                    <div className="h-80">
-                        <Bar 
-                            data={ordersData} 
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: {
-                                            stepSize: 1
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h2 className="text-xl font-semibold mb-4">Продажи</h2>
+                            <div className="h-80">
+                                <Line 
+                                    data={salesData} 
+                                    options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true
+                                            }
                                         }
-                                    }
-                                }
-                            }} 
-                        />
+                                    }} 
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h2 className="text-xl font-semibold mb-4">Заказы</h2>
+                            <div className="h-80">
+                                <Bar 
+                                    data={ordersData} 
+                                    options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    stepSize: 1
+                                                }
+                                            }
+                                        }
+                                    }} 
+                                />
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-lg shadow p-6 lg:col-span-1">
-                    <h2 className="text-xl font-semibold mb-4">Товары по категориям</h2>
-                    <div className="h-80 flex items-center justify-center">
-                        <Pie 
-                            data={categoriesData} 
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom'
-                                    }
-                                }
-                            }} 
-                        />
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div className="bg-white rounded-lg shadow p-6 lg:col-span-1">
+                            <h2 className="text-xl font-semibold mb-4">Товары по категориям</h2>
+                            <div className="h-80 flex items-center justify-center">
+                                <Pie 
+                                    data={categoriesData} 
+                                    options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom'
+                                            }
+                                        }
+                                    }} 
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
+                            <h2 className="text-xl font-semibold mb-4">Топ товаров</h2>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Товар</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Продажи</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Выручка</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {stats.topProducts.map((product, index) => (
+                                            <tr key={index}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        {product.image && (
+                                                            <img 
+                                                                src={product.image} 
+                                                                alt={product.name}
+                                                                className="h-10 w-10 object-cover rounded mr-3"
+                                                            />
+                                                        )}
+                                                        <div>
+                                                            <p className="font-medium">{product.name}</p>
+                                                            <p className="text-sm text-gray-500">{product.sku || '-'}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{product.quantity}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">₽{product.revenue.toLocaleString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
-                <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
-                    <h2 className="text-xl font-semibold mb-4">Топ товаров</h2>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Товар</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Продажи</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Выручка</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {stats.topProducts.map((product, index) => (
-                                    <tr key={index}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                {product.image && (
-                                                    <img 
-                                                        src={product.image} 
-                                                        alt={product.name}
-                                                        className="h-10 w-10 object-cover rounded mr-3"
-                                                    />
-                                                )}
-                                                <div>
-                                                    <p className="font-medium">{product.name}</p>
-                                                    <p className="text-sm text-gray-500">{product.sku || '-'}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{product.quantity}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">₽{product.revenue.toLocaleString()}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h2 className="text-xl font-semibold mb-4">Последние заказы</h2>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№ заказа</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Клиент</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Сумма</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {stats.recentOrders.map((order, index) => (
+                                            <tr key={index}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <a 
+                                                        href={`/admin/orders/${order.id}`}
+                                                        className="text-indigo-600 hover:text-indigo-900"
+                                                    >
+                                                        {order.order_number}
+                                                    </a>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{order.customer_name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">₽{order.total_amount.toLocaleString()}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
+                                                        {getStatusText(order.status)}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{new Date(order.created_at).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h2 className="text-xl font-semibold mb-4">Новые пользователи</h2>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Пользователь</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата регистрации</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {stats.recentUsers.map((user, index) => (
+                                            <tr key={index}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <p 
+                                                        className="text-indigo-600 hover:text-indigo-900"
+                                                    >
+                                                        {user.name}
+                                                    </p>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{new Date(user.created_at).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-xl font-semibold mb-4">Последние заказы</h2>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№ заказа</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Клиент</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Сумма</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {stats.recentOrders.map((order, index) => (
-                                    <tr key={index}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <a 
-                                                href={`/admin/orders/${order.id}`}
-                                                className="text-indigo-600 hover:text-indigo-900"
-                                            >
-                                                {order.order_number}
-                                            </a>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{order.customer_name}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">₽{order.total_amount.toLocaleString()}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                                                {getStatusText(order.status)}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{new Date(order.created_at).toLocaleDateString()}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-xl font-semibold mb-4">Новые пользователи</h2>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Пользователь</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата регистрации</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {stats.recentUsers.map((user, index) => (
-                                    <tr key={index}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <a 
-                                                href={`/admin/users/${user.id}`}
-                                                className="text-indigo-600 hover:text-indigo-900"
-                                            >
-                                                {user.name}
-                                            </a>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{new Date(user.created_at).toLocaleDateString()}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                </>
+            ) : null
+        } 
         </div>
     )
 }

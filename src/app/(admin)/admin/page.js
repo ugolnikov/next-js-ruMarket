@@ -83,18 +83,24 @@ const AdminDashboard = () => {
                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Клиент</th>
                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Сумма</th>
                                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
                                     {stats.recentOrders.map((order) => (
                                         <tr key={order.id}>
-                                            <td className="px-4 py-2 whitespace-nowrap">{order.orderNumber}</td>
-                                            <td className="px-4 py-2 whitespace-nowrap">{order.fullName}</td>
-                                            <td className="px-4 py-2 whitespace-nowrap">₽{order.totalAmount}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{order.orderNumber || order.order_number}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{order.fullName || order.full_name}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">₽{Number(order.totalAmount || order.total_amount).toLocaleString()}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">
                                                 <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
                                                     {getStatusText(order.status)}
                                                 </span>
+                                            </td>
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                {order.createdAt || order.created_at ? 
+                                                    new Date(order.createdAt || order.created_at).toLocaleDateString() : 
+                                                    'Н/Д'}
                                             </td>
                                         </tr>
                                     ))}
@@ -122,10 +128,14 @@ const AdminDashboard = () => {
                                 <tbody className="divide-y divide-gray-200">
                                     {stats.recentUsers.map((user) => (
                                         <tr key={user.id}>
-                                            <td className="px-4 py-2 whitespace-nowrap">{user.name}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">{user.name || 'Без имени'}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">{user.email}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">{getRoleText(user.role)}</td>
-                                            <td className="px-4 py-2 whitespace-nowrap">{new Date(user.createdAt).toLocaleDateString()}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap">
+                                                {user.createdAt ? 
+                                                    new Date(user.createdAt).toLocaleDateString() : 
+                                                    'Н/Д'}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -156,8 +166,12 @@ const getStatusColor = (status) => {
     switch (status) {
         case 'pending':
             return 'bg-yellow-100 text-yellow-800'
-        case 'shipped':
+        case 'processing':
             return 'bg-blue-100 text-blue-800'
+        case 'shipped':
+            return 'bg-indigo-100 text-indigo-800'
+        case 'delivered':
+            return 'bg-purple-100 text-purple-800'
         case 'completed':
             return 'bg-green-100 text-green-800'
         case 'cancelled':
@@ -171,8 +185,12 @@ const getStatusText = (status) => {
     switch (status) {
         case 'pending':
             return 'Ожидает обработки'
+        case 'processing':
+            return 'В обработке'
         case 'shipped':
             return 'Отправлен'
+        case 'delivered':
+            return 'Доставлен'
         case 'completed':
             return 'Выполнен'
         case 'cancelled':

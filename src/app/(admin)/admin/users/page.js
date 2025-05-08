@@ -20,6 +20,7 @@ const UsersManagement = () => {
         try {
             setIsLoading(true)
             const response = await axios.get('/api/admin/users')
+            console.log(response.data)
             setUsers(response.data)
         } catch (err) {
             console.error('Error fetching users:', err)
@@ -34,6 +35,7 @@ const UsersManagement = () => {
         setFormData({
             name: user.name,
             email: user.email,
+            company_name: user.company_name,
             role: user.role,
             is_verify: user.is_verify,
             is_admin: user.is_admin
@@ -113,6 +115,7 @@ const UsersManagement = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Имя</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Роль</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Компания</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Верификация</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Админ</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
@@ -162,6 +165,20 @@ const UsersManagement = () => {
                                             </select>
                                         ) : (
                                             getRoleText(user.role)
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {editingUser === user.id ? (
+                                            <input
+                                                type="text"
+                                                name="company_name"
+                                                value={formData.company_name || ''}
+                                                onChange={handleChange}
+                                                className="w-full px-2 py-1 border rounded"
+                                            >
+                                            </input>
+                                        ) : (
+                                            user.company_name || '-'
                                         )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

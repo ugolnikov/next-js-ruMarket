@@ -1,17 +1,33 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from '@/lib/axios'
 import Loader from '@/components/Loader'
-import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { PencilIcon, TrashIcon, PlusIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
+import Image from 'next/image'
 
 const ProductsManagement = () => {
     const [products, setProducts] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [editingProduct, setEditingProduct] = useState(null)
-    const [formData, setFormData] = useState({})
     const [searchTerm, setSearchTerm] = useState('')
+    const [editingProduct, setEditingProduct] = useState(null)
+    const [editFormData, setEditFormData] = useState({
+        name: '',
+        description: '',
+        full_description: '',
+        price: 0,
+        unit: 'штука',
+        image_preview: '',
+        is_published: true,
+        seller_id: null
+    })
+    const [isSaving, setIsSaving] = useState(false)
+    const [uploadingPreview, setUploadingPreview] = useState(false)
+    const [errors, setErrors] = useState({})
+    const [uploadProgress, setUploadProgress] = useState(0) // Added missing state variable
+    const [previewFile, setPreviewFile] = useState(null) // Added missing state variable
+    const previewFileRef = useRef(null)
 
     useEffect(() => {
         fetchProducts()
@@ -21,43 +37,13 @@ const ProductsManagement = () => {
         try {
             setIsLoading(true)
             const response = await axios.get('/api/admin/products')
+            console.log('Products:', response.data)
             setProducts(response.data)
         } catch (err) {
             console.error('Error fetching products:', err)
             setError('Не удалось загрузить товары')
         } finally {
             setIsLoading(false)
-        }
-    }
-
-    const handleEdit = (product) => {
-        setEditingProduct(product.id)
-        setFormData({
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            unit: product.unit,
-            is_published: product.is_published
-        })
-    }
-
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : 
-                   name === 'price' ? parseFloat(value) : value
-        }))
-    }
-
-    const handleSave = async () => {
-        try {
-            await axios.put(`/api/admin/products/${editingProduct}`, formData)
-            setEditingProduct(null)
-            fetchProducts()
-        } catch (err) {
-            console.error('Error updating product:', err)
-            alert('Не удалось обновить товар')
         }
     }
 
@@ -73,8 +59,96 @@ const ProductsManagement = () => {
         }
     }
 
-    const handleCancel = () => {
+    const handleEdit = (product) => {
+        setEditingProduct(product.id)
+        setEditFormData({
+            name: product.name || '',
+            description: product.description || '',
+            full_description: product.full_description || '',
+            price: product.price || 0,
+            unit: product.unit || 'штука',
+            image_preview: product.image_preview || '',
+            is_published: product.is_published !== false,
+            seller_id: product.seller_id || null
+        })
+        setPreviewFile(null)
+    }
+
+    const handleCancelEdit = () => {
         setEditingProduct(null)
+        setPreviewFile(null)
+        setUploadProgress(0)
+    }
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target
+        setEditFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : 
+                   name === 'price' ? parseFloat(value) : value
+        }))
+    }
+
+    const handlePreviewUpload = async (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+        
+        setUploadingPreview(true)
+        
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            
+            const response = await axios.post('/api/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+            
+            if (response.data.success) {
+                setEditFormData(prev => ({
+                    ...prev,
+                    image_preview: response.data.url
+                }))
+            }
+        } catch (error) {
+            console.error('Error uploading preview image:', error)
+            setErrors(prev => ({
+                ...prev,
+                image_preview: 'Ошибка загрузки изображения'
+            }))
+        } finally {
+            setUploadingPreview(false)
+        }
+    }
+
+    const handleSaveEdit = async () => {
+        setIsSaving(true)
+        
+        try {
+            const productData = {
+                ...editFormData
+            }
+            
+            await axios.put(`/api/admin/products/${editingProduct}`, productData)
+            
+            // Update the product in the local state
+            setProducts(prevProducts => 
+                prevProducts.map(product => 
+                    product.id === editingProduct 
+                        ? { ...product, ...productData } 
+                        : product
+                )
+            )
+            
+            setEditingProduct(null)
+            setErrors({})
+        } catch (error) {
+            console.error('Error saving product:', error)
+            alert('Ошибка при сохранении товара: ' + (error.response?.data?.error || error.message))
+        } finally {
+            setIsSaving(false)
+        }
     }
 
     const filteredProducts = products.filter(product => 
@@ -121,6 +195,7 @@ const ProductsManagement = () => {
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Изображение</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Название</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Описание</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Цена</th>
@@ -132,14 +207,48 @@ const ProductsManagement = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredProducts.map((product) => (
-                                <tr key={product.id}>
+                                <tr key={product.id} className={editingProduct === product.id ? "bg-blue-50" : ""}>
                                     <td className="px-6 py-4 whitespace-nowrap">{product.id}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {editingProduct === product.id ? (
+                                            <div className="space-y-2">
+                                                {editFormData.image_preview && (
+                                                    <div className="mb-2">
+                                                        <p className="text-sm text-gray-500 mb-1">Текущее изображение:</p>
+                                                        <img 
+                                                            src={editFormData.image_preview} 
+                                                            alt="Preview" 
+                                                            className="h-20 w-20 object-cover border rounded"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    ref={previewFileRef}
+                                                    onChange={handlePreviewUpload}
+                                                    className="w-full text-sm"
+                                                    accept="image/*"
+                                                    disabled={uploadingPreview}
+                                                />
+                                                {uploadingPreview && <p className="text-sm text-blue-500">Загрузка...</p>}
+                                                {errors.image_preview && <p className="text-sm text-red-500">{errors.image_preview}</p>}
+                                            </div>
+                                        ) : (
+                                            product.image_preview && (
+                                                <img 
+                                                    src={product.image_preview} 
+                                                    alt={product.name} 
+                                                    className="h-10 w-10 object-cover rounded"
+                                                />
+                                            )
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {editingProduct === product.id ? (
                                             <input
                                                 type="text"
                                                 name="name"
-                                                value={formData.name || ''}
+                                                value={editFormData.name}
                                                 onChange={handleChange}
                                                 className="w-full px-2 py-1 border rounded"
                                             />
@@ -151,7 +260,7 @@ const ProductsManagement = () => {
                                         {editingProduct === product.id ? (
                                             <textarea
                                                 name="description"
-                                                value={formData.description || ''}
+                                                value={editFormData.description}
                                                 onChange={handleChange}
                                                 className="w-full px-2 py-1 border rounded"
                                                 rows={2}
@@ -165,9 +274,10 @@ const ProductsManagement = () => {
                                             <input
                                                 type="number"
                                                 name="price"
-                                                value={formData.price || 0}
+                                                value={editFormData.price}
                                                 onChange={handleChange}
-                                                className="w-24 px-2 py-1 border rounded"
+                                                className="w-full px-2 py-1 border rounded"
+                                                min="0"
                                                 step="0.01"
                                             />
                                         ) : (
@@ -179,9 +289,9 @@ const ProductsManagement = () => {
                                             <input
                                                 type="text"
                                                 name="unit"
-                                                value={formData.unit || ''}
+                                                value={editFormData.unit}
                                                 onChange={handleChange}
-                                                className="w-20 px-2 py-1 border rounded"
+                                                className="w-full px-2 py-1 border rounded"
                                             />
                                         ) : (
                                             product.unit
@@ -192,7 +302,7 @@ const ProductsManagement = () => {
                                             <input
                                                 type="checkbox"
                                                 name="is_published"
-                                                checked={formData.is_published || false}
+                                                checked={editFormData.is_published}
                                                 onChange={handleChange}
                                                 className="h-4 w-4"
                                             />
@@ -200,20 +310,19 @@ const ProductsManagement = () => {
                                             product.is_published ? 'Да' : 'Нет'
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {product.User?.name || 'Нет данных'}
-                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{product.seller?.company_name || 'Нет данных'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {editingProduct === product.id ? (
                                             <div className="flex space-x-2">
                                                 <button
-                                                    onClick={handleSave}
-                                                    className="text-green-600 hover:text-green-900"
+                                                    onClick={handleSaveEdit}
+                                                    disabled={isSaving}
+                                                    className="text-green-600 hover:text-green-900 disabled:opacity-50"
                                                 >
                                                     <CheckIcon className="h-5 w-5" />
                                                 </button>
                                                 <button
-                                                    onClick={handleCancel}
+                                                    onClick={handleCancelEdit}
                                                     className="text-red-600 hover:text-red-900"
                                                 >
                                                     <XMarkIcon className="h-5 w-5" />
@@ -242,6 +351,18 @@ const ProductsManagement = () => {
                     </table>
                 </div>
             </div>
+            
+            {uploadProgress > 0 && (
+                <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg w-64">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+                        <div 
+                            className="bg-blue-600 h-2.5 rounded-full" 
+                            style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                    </div>
+                    <p className="text-sm text-gray-500">Загрузка: {uploadProgress}%</p>
+                </div>
+            )}
         </div>
     )
 }

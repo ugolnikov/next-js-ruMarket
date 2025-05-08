@@ -2,41 +2,37 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-export const revalidate = 0
-
-export async function GET() {
+export async function GET(request) {
     try {
         const session = await auth()
-        
-        if (!session?.user?.id || !session?.user?.is_admin) {
+        console.log(session)
+        if (!session?.user?.id || session?.user?.is_admin !== true) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         // Get user count
         const userCount = await prisma.user.count()
         
-        // Get order count and total revenue
-        // Fix: The aggregate query structure was incorrect
-        const orderStats = await prisma.order.aggregate({
-            _count: {
-                id: true
-            },
-            _sum: {
-                totalAmount: true
-            }
-        })
+        // Get order count
+        const orderCount = await prisma.order.count()
         
         // Get product count
         const productCount = await prisma.product.count()
         
+        // Get total revenue
+        const revenueResult = await prisma.order.aggregate({
+            _sum: {
+                totalAmount: true
+            }
+        })
+        const totalRevenue = revenueResult._sum.totalAmount || 0
+        
         // Get recent orders
         const recentOrders = await prisma.order.findMany({
+            take: 5,
             orderBy: {
                 createdAt: 'desc'
             },
-            take: 5,
             include: {
                 user: {
                     select: {
@@ -47,25 +43,47 @@ export async function GET() {
             }
         })
         
+        // Get recent users
+        const recentUsers = await prisma.user.findMany({
+            take: 5,
+            orderBy: {
+                createdAt: 'desc'
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true
+            }
+        })
+        
         // Serialize the data
         const serializedOrders = recentOrders.map(order => ({
-            ...order,
             id: Number(order.id),
-            userId: order.userId ? Number(order.userId) : null,
+            orderNumber: order.orderNumber,
+            fullName: order.fullName,
             totalAmount: Number(order.totalAmount),
+            status: order.status,
             createdAt: order.createdAt?.toISOString(),
-            updatedAt: order.updatedAt?.toISOString(),
-            user: order.user ? {
-                ...order.user
-            } : null
+            user: order.user
+        }))
+        
+        const serializedUsers = recentUsers.map(user => ({
+            id: Number(user.id),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            createdAt: user.createdAt?.toISOString()
         }))
         
         return NextResponse.json({
             userCount,
-            orderCount: orderStats._count.id,
-            totalRevenue: Number(orderStats._sum.totalAmount || 0),
+            orderCount,
             productCount,
-            recentOrders: serializedOrders
+            totalRevenue: Number(totalRevenue),
+            recentOrders: serializedOrders,
+            recentUsers: serializedUsers
         })
     } catch (error) {
         console.error('Error fetching admin stats:', error)

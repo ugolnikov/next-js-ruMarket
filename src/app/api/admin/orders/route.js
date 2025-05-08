@@ -39,7 +39,7 @@ export async function GET() {
             ...order,
             id: Number(order.id),
             userId: order.userId ? Number(order.userId) : null,
-            total_amount: Number(order.total_amount),
+            totalAmount: Number(order.totalAmount),
             user: order.user ? {
                 ...order.user,
                 id: Number(order.user.id)

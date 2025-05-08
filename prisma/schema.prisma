@@ -36,7 +36,7 @@ model Product {
   description      String?
   full_description String?
   price            Decimal      @db.Decimal(10, 2)
-  unit             String?      @default("шт") @db.VarChar(50)
+  unit             String?      @default("штука") @db.VarChar(50)
   image_preview    String?      @db.VarChar(255)
   is_published     Boolean?     @default(true)
   seller_id        BigInt?      @map("seller_id")
@@ -109,7 +109,9 @@ model favorites {
 
 enum order_status {
   pending
+  processing
   shipped
+  delivered
   completed
   cancelled
 }

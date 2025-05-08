@@ -51,7 +51,7 @@ CREATE TABLE products (
   description TEXT,
   full_description TEXT,
   price DECIMAL(10,2) NOT NULL,
-  unit VARCHAR(50) DEFAULT 'шт',
+  unit VARCHAR(50) DEFAULT 'штука',
   image_preview VARCHAR(255),
   is_published BOOLEAN DEFAULT true,
   seller_id BIGINT REFERENCES users(id) ON DELETE CASCADE,

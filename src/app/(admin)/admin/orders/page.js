@@ -21,6 +21,7 @@ const OrdersManagement = () => {
         try {
             setIsLoading(true)
             const response = await axios.get('/api/admin/orders')
+            console.log(response.data)
             setOrders(response.data)
         } catch (err) {
             console.error('Error fetching orders:', err)
@@ -33,9 +34,7 @@ const OrdersManagement = () => {
     const handleEdit = (order) => {
         setEditingOrder(order.id)
         setFormData({
-            status: order.status,
-            tracking_number: order.tracking_number || '',
-            notes: order.notes || ''
+            status: order.status || 'pending'
         })
     }
 
@@ -49,12 +48,14 @@ const OrdersManagement = () => {
 
     const handleSave = async () => {
         try {
-            await axios.put(`/api/admin/orders/${editingOrder}`, formData)
+            console.log('Saving order with data:', formData)
+            const response = await axios.put(`/api/admin/orders/${editingOrder}`, formData)
+            console.log('Update response:', response.data)
             setEditingOrder(null)
             fetchOrders()
         } catch (err) {
             console.error('Error updating order:', err)
-            alert('Не удалось обновить заказ')
+            alert(`Не удалось обновить заказ: ${err.response?.data?.error || err.message}`)
         }
     }
 
@@ -99,9 +100,9 @@ const OrdersManagement = () => {
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№ заказа</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Клиент</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Товары</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Сумма</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Трек-номер</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
                             </tr>
@@ -109,9 +110,27 @@ const OrdersManagement = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredOrders.map((order) => (
                                 <tr key={order.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap">{order.order_number}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{order.full_name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">₽{order.total_amount}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{order.orderNumber}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{order.fullName}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="max-h-20 overflow-y-auto">
+                                            {order.items && order.items.length > 0 ? (
+                                                <ul className="text-sm">
+                                                    {order.items.map((item, index) => (
+                                                        <li key={index} className="mb-1">
+                                                            {item.product?.name || 'Неизвестный товар'} 
+                                                            <span className="text-gray-500">
+                                                                ({item.quantity} шт. × ₽{item.price.toLocaleString()})
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <span className="text-gray-500">Нет товаров</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">₽{order.totalAmount.toLocaleString()}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {editingOrder === order.id ? (
                                             <select
@@ -131,20 +150,6 @@ const OrdersManagement = () => {
                                             <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
                                                 {getStatusText(order.status)}
                                             </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {editingOrder === order.id ? (
-                                            <input
-                                                type="text"
-                                                name="tracking_number"
-                                                value={formData.tracking_number || ''}
-                                                onChange={handleChange}
-                                                className="w-full px-2 py-1 border rounded"
-                                                placeholder="Введите трек-номер"
-                                            />
-                                        ) : (
-                                            order.tracking_number || '-'
                                         )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

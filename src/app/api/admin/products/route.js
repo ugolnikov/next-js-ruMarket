@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
 export const revalidate = 0
 
-export async function GET() {
+export async function GET(request) {
     try {
         const session = await auth()
         
@@ -15,9 +15,6 @@ export async function GET() {
         }
 
         const products = await prisma.product.findMany({
-            orderBy: {
-                id: 'asc'
-            },
             include: {
                 seller: {
                     select: {
@@ -27,21 +24,24 @@ export async function GET() {
                         company_name: true
                     }
                 }
+            },
+            orderBy: {
+                createdAt: 'desc'
             }
         })
         
-        // Properly serialize BigInt values
+        // Serialize the data
         const serializedProducts = products.map(product => ({
             ...product,
             id: Number(product.id),
             seller_id: product.seller_id ? Number(product.seller_id) : null,
             price: Number(product.price),
-            createdAt: product.createdAt?.toISOString(),
-            updatedAt: product.updatedAt?.toISOString(),
             seller: product.seller ? {
                 ...product.seller,
                 id: Number(product.seller.id)
-            } : null
+            } : null,
+            createdAt: product.createdAt?.toISOString(),
+            updatedAt: product.updatedAt?.toISOString()
         }))
         
         return NextResponse.json(serializedProducts)
@@ -61,14 +61,32 @@ export async function POST(request) {
 
         const data = await request.json()
         
-        // Remove any id field that might be causing conflicts
-        const { id, ...cleanData } = data
+        // Validate required fields
+        if (!data.name || data.price === undefined) {
+            return NextResponse.json({ error: 'Name and price are required' }, { status: 400 })
+        }
         
+        // Create the product
         const product = await prisma.product.create({
             data: {
-                ...cleanData,
-                seller_id: BigInt(cleanData.seller_id || session.user.id),
-                is_published: true
+                name: data.name,
+                description: data.description || '',
+                full_description: data.full_description || '',
+                price: data.price,
+                unit: data.unit || 'штука',
+                image_preview: data.image_preview || '',
+                images: data.images || [],
+                is_published: data.is_published !== undefined ? data.is_published : true,
+                seller_id: data.seller_id ? BigInt(data.seller_id) : null
+            },
+            include: {
+                seller: {
+                    select: {
+                        id: true,
+                        name: true,
+                        company_name: true
+                    }
+                }
             }
         })
         
@@ -76,13 +94,17 @@ export async function POST(request) {
         const serializedProduct = {
             ...product,
             id: Number(product.id),
-            seller_id: Number(product.seller_id),
+            seller_id: product.seller_id ? Number(product.seller_id) : null,
             price: Number(product.price),
+            seller: product.seller ? {
+                ...product.seller,
+                id: Number(product.seller.id)
+            } : null,
             createdAt: product.createdAt?.toISOString(),
             updatedAt: product.updatedAt?.toISOString()
         }
         
-        return NextResponse.json(serializedProduct, { status: 201 })
+        return NextResponse.json(serializedProduct)
     } catch (error) {
         console.error('Error creating product:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

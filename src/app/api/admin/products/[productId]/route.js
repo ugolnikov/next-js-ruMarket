@@ -24,7 +24,7 @@ export async function GET(request, { params }) {
         const product = await prisma.product.findUnique({
             where: { id: BigInt(productId) },
             include: {
-                User: {
+                seller: {
                     select: {
                         id: true,
                         name: true,
@@ -43,11 +43,11 @@ export async function GET(request, { params }) {
         const serializedProduct = {
             ...product,
             id: Number(product.id),
-            seller_id: Number(product.seller_id),
+            seller_id: product.seller_id ? Number(product.seller_id) : null,
             price: Number(product.price),
-            User: product.User ? {
-                ...product.User,
-                id: Number(product.User.id)
+            seller: product.seller ? {
+                ...product.seller,
+                id: Number(product.seller.id)
             } : null,
             createdAt: product.createdAt?.toISOString(),
             updatedAt: product.updatedAt?.toISOString()
@@ -74,28 +74,48 @@ export async function PUT(request, { params }) {
         if (!productId) {
             return NextResponse.json({ error: 'Product ID is required' }, { status: 400 })
         }
-
+        
         const data = await request.json()
         
-        // Remove any fields that might cause issues
-        const { id, User, ...cleanData } = data
-        
-        // Convert seller_id to BigInt if it exists
-        if (cleanData.seller_id) {
-            cleanData.seller_id = BigInt(cleanData.seller_id)
+        // Validate required fields
+        if (!data.name || data.price === undefined) {
+            return NextResponse.json({ error: 'Name and price are required' }, { status: 400 })
         }
         
+        // Update the product
         const product = await prisma.product.update({
             where: { id: BigInt(productId) },
-            data: cleanData
+            data: {
+                name: data.name,
+                description: data.description || '',
+                full_description: data.full_description || '',
+                price: data.price,
+                unit: data.unit || 'штука',
+                image_preview: data.image_preview || '',
+                is_published: data.is_published !== undefined ? data.is_published : true,
+                seller_id: data.seller_id ? BigInt(data.seller_id) : null
+            },
+            include: {
+                seller: {
+                    select: {
+                        id: true,
+                        name: true,
+                        company_name: true
+                    }
+                }
+            }
         })
         
         // Serialize the data
         const serializedProduct = {
             ...product,
             id: Number(product.id),
-            seller_id: Number(product.seller_id),
+            seller_id: product.seller_id ? Number(product.seller_id) : null,
             price: Number(product.price),
+            seller: product.seller ? {
+                ...product.seller,
+                id: Number(product.seller.id)
+            } : null,
             createdAt: product.createdAt?.toISOString(),
             updatedAt: product.updatedAt?.toISOString()
         }
@@ -121,12 +141,13 @@ export async function DELETE(request, { params }) {
         if (!productId) {
             return NextResponse.json({ error: 'Product ID is required' }, { status: 400 })
         }
-
+        
+        // Delete the product
         await prisma.product.delete({
             where: { id: BigInt(productId) }
         })
         
-        return NextResponse.json({ message: 'Product deleted successfully' })
+        return NextResponse.json({ success: true })
     } catch (error) {
         console.error('Error deleting product:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

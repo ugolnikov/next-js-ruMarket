@@ -65,7 +65,7 @@ export async function PUT(request, { params }) {
         const data = await request.json()
         
         // Validate data
-        const { name, email, role, is_verify, is_admin } = data
+        const { name, email, role, company_name, is_verify, is_admin } = data
         
         const updatedUser = await prisma.user.update({
             where: { id: BigInt(userId) },
@@ -73,6 +73,7 @@ export async function PUT(request, { params }) {
                 name,
                 email,
                 role,
+                company_name,
                 is_verify,
                 is_admin
             }

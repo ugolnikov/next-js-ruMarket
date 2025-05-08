@@ -24,7 +24,7 @@ CREATE TABLE "products" (
     "description" TEXT,
     "full_description" TEXT,
     "price" DECIMAL(10,2) NOT NULL,
-    "unit" TEXT NOT NULL DEFAULT 'шт',
+    "unit" TEXT NOT NULL DEFAULT 'штука',
     "image_preview" TEXT,
     "is_published" BOOLEAN NOT NULL DEFAULT true,
     "seller_id" INTEGER NOT NULL,
