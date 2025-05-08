@@ -34,18 +34,18 @@ export const { auth, handlers: { GET, POST }, signIn, signOut } = NextAuth({
                 if (!isPasswordValid) {
                     throw new Error('Неверный пароль')
                 }
-
                 return {
                     id: Number(user.id),
                     email: user.email,
                     name: user.name,
                     role: user.role,
+                    is_admin: user.is_admin || false,
                     phone: user.phone,
-                    is_verify: user.is_verify, // Add is_verify to the session
+                    is_verify: user.is_verify,
                     company_name: user.company_name,
                     logo: user.logo, 
-                    inn: user.inn, // Add inn
-                    address: user.address // Add address
+                    inn: user.inn,
+                    address: user.address
                 }
             }
         })
@@ -63,12 +63,13 @@ export const { auth, handlers: { GET, POST }, signIn, signOut } = NextAuth({
                     email: user.email,
                     name: user.name,
                     role: user.role,
+                    is_admin: user.is_admin || false, 
                     phone: user.phone,
-                    is_verify: user.is_verify, // Add is_verify to the session
+                    is_verify: user.is_verify, 
                     company_name: user.company_name,
                     logo: user.logo, 
-                    inn: user.inn, // Add inn
-                    address: user.address // Add address
+                    inn: user.inn, 
+                    address: user.address
                 }
             }
             return session

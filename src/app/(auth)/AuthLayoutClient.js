@@ -2,7 +2,6 @@
 import Link from 'next/link'
 import AuthCard from '@/app/(auth)/AuthCard'
 import ApplicationLogo from '@/components/ApplicationLogo'
-import Navigation from '@/components/Navigation'
 import ClientLayout from './ClientLayout'
 
 const AuthLayoutClient = ({ children }) => {

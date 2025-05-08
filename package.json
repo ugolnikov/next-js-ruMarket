@@ -1,6 +1,6 @@
 {
-  "name": "breeze-next",
-  "version": "0.1.0",
+  "name": "ru-market",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {

@@ -45,7 +45,6 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
                 }
                 return
             }
-
             router.push('/dashboard')
         } catch (error) {
             if (setError) {
@@ -156,6 +155,7 @@ export const useAuth = ({ middleware, redirectIfAuthenticated } = {}) => {
             router.push('/login')
         }
     }, [session, status, middleware, redirectIfAuthenticated])
+
 
     return {
         user: session?.user,

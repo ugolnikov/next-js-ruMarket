@@ -4,19 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/hooks/auth'
 
 const Footer = () => {
-    const [isVisible, setIsVisible] = useState(false)
-    const { user } = useAuth()
-
-    useEffect(() => {
-        // Wait for auth check and then show footer
-        if (user !== undefined) {
-            setIsVisible(true)
-        }
-    }, [user])
 
     return (
         <AnimatePresence>
-            {isVisible && (
                 <motion.footer
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -107,7 +97,6 @@ const Footer = () => {
                         </div>
                     </div>
                 </motion.footer>
-            )}
         </AnimatePresence>
     )
 }
