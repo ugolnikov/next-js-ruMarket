@@ -13,7 +13,6 @@ model User {
   password     String       @db.VarChar(255)
   name         String?      @db.VarChar(255)
   role         user_role?   @default(customer)
-  is_admin     Boolean?     @default(false)
   phone        String?      @db.VarChar(255)
   company_name String?      @db.VarChar(255)
   inn          String?      @unique @db.VarChar(255)
@@ -22,7 +21,7 @@ model User {
   is_verify    Boolean?     @default(false)
   createdAt    DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  
+  is_admin     Boolean?     @default(false)
   cart_items   cart_items[]
   favorites    favorites[]
   orders       Order[]

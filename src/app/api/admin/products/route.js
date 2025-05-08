@@ -19,7 +19,7 @@ export async function GET() {
                 id: 'asc'
             },
             include: {
-                User: {
+                seller: {
                     select: {
                         id: true,
                         name: true,
@@ -30,18 +30,18 @@ export async function GET() {
             }
         })
         
-        // Serialize the data
+        // Properly serialize BigInt values
         const serializedProducts = products.map(product => ({
             ...product,
             id: Number(product.id),
-            seller_id: Number(product.seller_id),
+            seller_id: product.seller_id ? Number(product.seller_id) : null,
             price: Number(product.price),
-            User: product.User ? {
-                ...product.User,
-                id: Number(product.User.id)
-            } : null,
             createdAt: product.createdAt?.toISOString(),
-            updatedAt: product.updatedAt?.toISOString()
+            updatedAt: product.updatedAt?.toISOString(),
+            seller: product.seller ? {
+                ...product.seller,
+                id: Number(product.seller.id)
+            } : null
         }))
         
         return NextResponse.json(serializedProducts)

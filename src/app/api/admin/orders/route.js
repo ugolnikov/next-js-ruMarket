@@ -24,7 +24,7 @@ export async function GET() {
                         product: true
                     }
                 },
-                User: {
+                user: {
                     select: {
                         id: true,
                         name: true,
@@ -38,22 +38,22 @@ export async function GET() {
         const serializedOrders = orders.map(order => ({
             ...order,
             id: Number(order.id),
-            userId: Number(order.userId),
+            userId: order.userId ? Number(order.userId) : null,
             total_amount: Number(order.total_amount),
-            User: order.User ? {
-                ...order.User,
-                id: Number(order.User.id)
+            user: order.user ? {
+                ...order.user,
+                id: Number(order.user.id)
             } : null,
             items: order.items.map(item => ({
                 ...item,
                 id: Number(item.id),
-                order_id: Number(item.order_id),
-                product_id: Number(item.product_id),
+                orderId: item.orderId ? Number(item.orderId) : null,
+                productId: item.productId ? Number(item.productId) : null,
                 price: Number(item.price),
                 product: item.product ? {
                     ...item.product,
                     id: Number(item.product.id),
-                    seller_id: Number(item.product.seller_id),
+                    seller_id: item.product.seller_id ? Number(item.product.seller_id) : null,
                     price: Number(item.product.price)
                 } : null
             })),

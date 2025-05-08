@@ -18,12 +18,13 @@ export async function GET() {
         const userCount = await prisma.user.count()
         
         // Get order count and total revenue
+        // Fix: The aggregate query structure was incorrect
         const orderStats = await prisma.order.aggregate({
             _count: {
                 id: true
             },
             _sum: {
-                total_amount: true
+                totalAmount: true
             }
         })
         
@@ -32,32 +33,17 @@ export async function GET() {
         
         // Get recent orders
         const recentOrders = await prisma.order.findMany({
-            take: 5,
             orderBy: {
                 createdAt: 'desc'
             },
-            select: {
-                id: true,
-                order_number: true,
-                full_name: true,
-                total_amount: true,
-                status: true,
-                createdAt: true
-            }
-        })
-        
-        // Get recent users
-        const recentUsers = await prisma.user.findMany({
             take: 5,
-            orderBy: {
-                createdAt: 'desc'
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true
+                    }
+                }
             }
         })
         
@@ -65,23 +51,21 @@ export async function GET() {
         const serializedOrders = recentOrders.map(order => ({
             ...order,
             id: Number(order.id),
-            totalAmount: Number(order.total_amount),
-            createdAt: order.createdAt?.toISOString()
-        }))
-        
-        const serializedUsers = recentUsers.map(user => ({
-            ...user,
-            id: Number(user.id),
-            createdAt: user.createdAt?.toISOString()
+            userId: order.userId ? Number(order.userId) : null,
+            totalAmount: Number(order.totalAmount),
+            createdAt: order.createdAt?.toISOString(),
+            updatedAt: order.updatedAt?.toISOString(),
+            user: order.user ? {
+                ...order.user
+            } : null
         }))
         
         return NextResponse.json({
             userCount,
             orderCount: orderStats._count.id,
-            totalRevenue: Number(orderStats._sum.total_amount || 0),
+            totalRevenue: Number(orderStats._sum.totalAmount || 0),
             productCount,
-            recentOrders: serializedOrders,
-            recentUsers: serializedUsers
+            recentOrders: serializedOrders
         })
     } catch (error) {
         console.error('Error fetching admin stats:', error)

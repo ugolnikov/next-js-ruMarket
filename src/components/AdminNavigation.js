@@ -9,7 +9,8 @@ import {
     ShoppingCartIcon, 
     ChartBarIcon,
     Bars3Icon,
-    XMarkIcon
+    XMarkIcon,
+    ArrowLeftStartOnRectangleIcon
 } from '@heroicons/react/24/outline'
 
 const AdminNavigation = () => {
@@ -22,6 +23,7 @@ const AdminNavigation = () => {
         { name: 'Пользователи', href: '/admin/users', icon: UsersIcon },
         { name: 'Товары', href: '/admin/products', icon: ShoppingBagIcon },
         { name: 'Заказы', href: '/admin/orders', icon: ShoppingCartIcon },
+        { name: 'Выйти', href: '/dashboard', icon: ArrowLeftStartOnRectangleIcon },
     ]
     
     const isActive = (path) => {
@@ -81,8 +83,9 @@ const AdminNavigation = () => {
                     <h1 className="text-2xl font-bold">Админ-панель</h1>
                 </div>
                 <div className="mt-6 flex flex-grow flex-col">
-                    <nav className="flex-1 px-3 space-y-1">
-                        {navigation.map((item) => (
+                    <nav className='d-flex flex-column flex-between'>
+                        <ul  className="flex-1 px-3 space-y-1">
+                            {navigation.map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.href}
@@ -101,6 +104,7 @@ const AdminNavigation = () => {
                                 {item.name}
                             </Link>
                         ))}
+                        </ul>
                     </nav>
                 </div>
             </div>

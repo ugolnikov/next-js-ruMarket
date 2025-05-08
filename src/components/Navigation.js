@@ -15,6 +15,7 @@ import CartIcon from '@/components/CartIcon'
 import Loader from '@/components/Loader'
 import { useCart } from '@/hooks/cart'
 import FavoritesIcon from '@/components/FavoritesIcon'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const Navigation = ({ user }) => {
     const { logout } = useAuth()
@@ -35,7 +36,15 @@ const Navigation = ({ user }) => {
     // if (isLoading) return <Loader />
 
     return (
-        <nav className="bg-white border-b border-gray-100">
+        <AnimatePresence>
+            <motion.nav
+            // initial={{ y: -10, opacity: 0.5 }}
+            // animate={{ y: 0, opacity: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, ease: 'easeIn' }}
+            className="bg-white border-b border-gray-100"
+            >
             {/* Primary Navigation Menu */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
@@ -74,6 +83,13 @@ const Navigation = ({ user }) => {
                                         Заявки
                                     </NavLink>
                                 </>
+                            ) : null}
+                            {user?.is_admin === true ? (
+                                <NavLink
+                                    href="/admin"
+                                    active={pathname === '/admin'}>
+                                    Панель администратора
+                                </NavLink>
                             ) : null}
                         </div>
                     </div>
@@ -215,6 +231,13 @@ const Navigation = ({ user }) => {
                                     Заявки
                                 </ResponsiveNavLink></>
                                 ) : (null)} 
+                                {user?.is_admin === true ? (
+                                    <ResponsiveNavLink
+                                        href="/admin"
+                                        active={pathname === '/admin'}>
+                                        Панель администратора
+                                    </ResponsiveNavLink>
+                                ) : null}
                             </>
                         )}
                     </div>
@@ -259,7 +282,8 @@ const Navigation = ({ user }) => {
                     ) : null}
                 </div>
             )}
-        </nav>
+                        </motion.nav>
+                        </AnimatePresence>
     )
 }
 

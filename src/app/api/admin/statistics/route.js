@@ -163,62 +163,40 @@ export async function GET(request) {
 
 // Функция для получения данных о продажах по дням
 async function getSalesByDate(period, startDate) {
-    const format = period === 'year' ? '%Y-%m' : '%Y-%m-%d'
-    const groupBy = period === 'year' ? 'month' : 'day'
+    const format = period === 'year' ? 'YYYY-MM' : 'YYYY-MM-DD'
     
     const sales = await prisma.$queryRaw`
-        SELECT 
-            DATE_FORMAT(createdAt, ${format}) as date,
-            SUM(total_amount) as amount
-        FROM \`Order\`
-        WHERE createdAt >= ${startDate}
-        GROUP BY DATE_FORMAT(createdAt, ${format})
+        SELECT
+            TO_CHAR("created_at", ${period === 'year' ? 'YYYY-MM' : 'YYYY-MM-DD'}) as date,
+            SUM("total_amount") as amount
+        FROM "orders"
+        WHERE "created_at" >= ${startDate}
+        GROUP BY date
         ORDER BY date ASC
     `
     
-    return sales.map(item => ({
-        date: item.date,
-        amount: Number(item.amount)
+    return sales.map(sale => ({
+        date: sale.date,
+        amount: Number(sale.amount)
     }))
 }
 
 // Функция для получения данных о заказах по дням
-async function getOrdersByDate(period, startDate) {
-    const format = period === 'year' ? '%Y-%m' : '%Y-%m-%d'
-    const groupBy = period === 'year' ? 'month' : 'day'
-    
+async function getOrdersByDate(period) {
+    const format = period === 'year' ? 'YYYY-MM' : 'YYYY-MM-DD'
+
     const orders = await prisma.$queryRaw`
-        SELECT 
-            DATE_FORMAT(createdAt, ${format}) as date,
+        SELECT
+            TO_CHAR("created_at", ${period === 'year' ? 'YYYY-MM' : 'YYYY-MM-DD'}) as date,
             COUNT(*) as count
-        FROM \`Order\`
-        WHERE createdAt >= ${startDate}
-        GROUP BY DATE_FORMAT(createdAt, ${format})
+        FROM "orders"
+        GROUP BY date
         ORDER BY date ASC
     `
     
-    return orders.map(item => ({
-        date: item.date,
-        count: Number(item.count)
-    }))
-}
-
-// Функция для получения данных о товарах по категориям
-async function getProductsByCategory() {
-    const categories = await prisma.$queryRaw`
-        SELECT 
-            category,
-            COUNT(*) as count
-        FROM Product
-        WHERE category IS NOT NULL
-        GROUP BY category
-        ORDER BY count DESC
-        LIMIT 10
-    `
-    
-    return categories.map(item => ({
-        category: item.category || 'Без категории',
-        count: Number(item.count)
+    return orders.map(order => ({
+        date: order.date,
+        count: Number(order.count)
     }))
 }
 
@@ -228,15 +206,15 @@ async function getTopProducts(startDate) {
         SELECT 
             p.id,
             p.name,
-            p.image,
-            p.sku,
+            p.image_preview,
+            p.unit,
             SUM(oi.quantity) as quantity,
             SUM(oi.price * oi.quantity) as revenue
-        FROM OrderItem oi
-        JOIN Product p ON oi.product_id = p.id
-        JOIN \`Order\` o ON oi.order_id = o.id
-        WHERE o.createdAt >= ${startDate}
-        GROUP BY p.id, p.name, p.image, p.sku
+        FROM "order_items" oi
+        JOIN "products" p ON oi."product_id" = p.id
+        JOIN "orders" o ON oi."order_id" = o.id
+        WHERE o."created_at" >= ${startDate}
+        GROUP BY p.id, p.name, p.image_preview, p.unit
         ORDER BY revenue DESC
         LIMIT 10
     `
@@ -244,10 +222,30 @@ async function getTopProducts(startDate) {
     return products.map(item => ({
         id: Number(item.id),
         name: item.name,
-        image: item.image,
-        sku: item.sku,
+        image: item.image_preview,
+        unit: item.unit,
         quantity: Number(item.quantity),
         revenue: Number(item.revenue)
+    }))
+}
+
+// Функция для получения данных о товарах по категориям
+async function getProductsByCategory() {
+    // Since there are no categories in the schema, let's group by seller instead
+    const sellerGroups = await prisma.$queryRaw`
+        SELECT 
+            u.name as seller_name,
+            COUNT(p.id) as count
+        FROM "products" p
+        LEFT JOIN "users" u ON p."seller_id" = u.id
+        GROUP BY u.name
+        ORDER BY count DESC
+        LIMIT 10
+    `
+    
+    return sellerGroups.map(item => ({
+        category: item.seller_name || 'Без продавца',
+        count: Number(item.count)
     }))
 }
 
@@ -259,7 +257,7 @@ async function getRecentOrders() {
         },
         take: 10,
         include: {
-            User: {
+            user: {
                 select: {
                     name: true
                 }
@@ -269,11 +267,11 @@ async function getRecentOrders() {
     
     return orders.map(order => ({
         id: Number(order.id),
-        order_number: order.order_number,
-        customer_name: order.full_name || (order.User ? order.User.name : 'Неизвестно'),
-        total_amount: Number(order.total_amount),
+        order_number: order.orderNumber,
+        customer_name: order.fullName || (order.user ? order.user.name : 'Неизвестно'),
+        total_amount: Number(order.totalAmount),
         status: order.status,
-        created_at: order.createdAt
+        created_at: order.createdAt.toISOString()
     }))
 }
 
@@ -296,6 +294,6 @@ async function getRecentUsers() {
         id: Number(user.id),
         name: user.name,
         email: user.email,
-        created_at: user.createdAt
+        created_at: user.createdAt.toISOString()
     }))
 }

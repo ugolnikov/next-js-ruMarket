@@ -64,7 +64,7 @@ const AdminDashboard = () => {
                     color="bg-purple-500" 
                 />
                 <StatCard 
-                    title="Выручка" 
+                    title="Общая сумма покупок" 
                     value={`₽${stats?.totalRevenue?.toLocaleString() || 0}`} 
                     icon={CurrencyDollarIcon} 
                     color="bg-yellow-500" 
