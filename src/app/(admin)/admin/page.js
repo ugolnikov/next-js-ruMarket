@@ -8,6 +8,7 @@ import {
     CubeIcon, 
     CurrencyDollarIcon 
 } from '@heroicons/react/24/outline'
+import Link from 'next/link'
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState(null)
@@ -89,7 +90,7 @@ const AdminDashboard = () => {
                                 <tbody className="divide-y divide-gray-200">
                                     {stats.recentOrders.map((order) => (
                                         <tr key={order.id}>
-                                            <td className="px-4 py-2 whitespace-nowrap">{order.orderNumber || order.order_number}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap"><Link href={`/admin/orders/${order.id}`} className='text-indigo-600 hover:text-indigo-900'>{order.orderNumber || order.order_number}</Link></td>
                                             <td className="px-4 py-2 whitespace-nowrap">{order.fullName || order.full_name}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">₽{Number(order.totalAmount || order.total_amount).toLocaleString()}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">
@@ -128,7 +129,7 @@ const AdminDashboard = () => {
                                 <tbody className="divide-y divide-gray-200">
                                     {stats.recentUsers.map((user) => (
                                         <tr key={user.id}>
-                                            <td className="px-4 py-2 whitespace-nowrap">{user.name || 'Без имени'}</td>
+                                            <td className="px-4 py-2 whitespace-nowrap"><Link href={`/admin/users#${user.id}`} className='text-indigo-600 hover:text-indigo-900'>{user.name || 'Без имени'}</Link></td>
                                             <td className="px-4 py-2 whitespace-nowrap">{user.email}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">{getRoleText(user.role)}</td>
                                             <td className="px-4 py-2 whitespace-nowrap">

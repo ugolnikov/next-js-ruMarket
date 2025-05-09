@@ -43,15 +43,7 @@ export const db = {
     })
 
     if (existingItem) {
-      return await prisma.cart_items.update({
-        where: { id: existingItem.id },
-        data: {
-          quantity: existingItem.quantity + quantity
-        },
-        include: {
-          products: true
-        }
-      })
+      return existingItem;
     }
 
     return await prisma.cart_items.create({
@@ -67,12 +59,24 @@ export const db = {
   },
 
   async updateCartItemQuantity(userId, cartItemId, quantity) {
+    // Find the cart item first
+    const cartItem = await prisma.cart_items.findFirst({
+      where: {
+        id: cartItemId,
+        user_id: userId
+      }
+    });
+    
+    if (!cartItem) {
+      throw new Error('Cart item not found');
+    }
+    
     return await prisma.cart_items.update({
       where: {
         id: cartItemId,
         user_id: userId
       },
-      data: { quantity },
+      data: { quantity: 1 },
       include: {
         products: true
       }

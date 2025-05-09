@@ -257,10 +257,10 @@ export default function OrderDetails({ orderNumber }) {
                                             {item.product.name}
                                         </h3>
                                         <p className="text-gray-600">
-                                            Количество: {item.quantity}
+                                        <b>Описание:</b> {item.product.description}
                                         </p>
                                         <p className="text-gray-600">
-                                            Цена: {formatPrice(item.price)} ₽
+                                        <b>Единица измерения:</b> {item.product.unit}
                                         </p>
                                     </div>
                                     <div className="text-right">

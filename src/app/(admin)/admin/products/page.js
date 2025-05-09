@@ -49,7 +49,7 @@ const ProductsManagement = () => {
 
     const handleDelete = async (productId) => {
         if (!confirm('Вы уверены, что хотите удалить этот товар?')) return
-        
+
         try {
             await axios.delete(`/api/admin/products/${productId}`)
             fetchProducts()
@@ -84,27 +84,27 @@ const ProductsManagement = () => {
         const { name, value, type, checked } = e.target
         setEditFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : 
-                   name === 'price' ? parseFloat(value) : value
+            [name]: type === 'checkbox' ? checked :
+                name === 'price' ? parseFloat(value) : value
         }))
     }
 
     const handlePreviewUpload = async (e) => {
         const file = e.target.files[0]
         if (!file) return
-        
+
         setUploadingPreview(true)
-        
+
         try {
             const formData = new FormData()
             formData.append('file', file)
-            
+
             const response = await axios.post('/api/upload', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             })
-            
+
             if (response.data.success) {
                 setEditFormData(prev => ({
                     ...prev,
@@ -124,23 +124,23 @@ const ProductsManagement = () => {
 
     const handleSaveEdit = async () => {
         setIsSaving(true)
-        
+
         try {
             const productData = {
                 ...editFormData
             }
-            
+
             await axios.put(`/api/admin/products/${editingProduct}`, productData)
-            
+
             // Update the product in the local state
-            setProducts(prevProducts => 
-                prevProducts.map(product => 
-                    product.id === editingProduct 
-                        ? { ...product, ...productData } 
+            setProducts(prevProducts =>
+                prevProducts.map(product =>
+                    product.id === editingProduct
+                        ? { ...product, ...productData }
                         : product
                 )
             )
-            
+
             setEditingProduct(null)
             setErrors({})
         } catch (error) {
@@ -151,7 +151,7 @@ const ProductsManagement = () => {
         }
     }
 
-    const filteredProducts = products.filter(product => 
+    const filteredProducts = products.filter(product =>
         product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -170,15 +170,15 @@ const ProductsManagement = () => {
         <div>
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold">Управление товарами</h1>
-                <Link 
-                    href="/admin/products/new" 
+                <Link
+                    href="/admin/products/new"
                     className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center"
                 >
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Добавить товар
                 </Link>
             </div>
-            
+
             <div className="mb-6">
                 <input
                     type="text"
@@ -188,7 +188,7 @@ const ProductsManagement = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            
+
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -215,9 +215,9 @@ const ProductsManagement = () => {
                                                 {editFormData.image_preview && (
                                                     <div className="mb-2">
                                                         <p className="text-sm text-gray-500 mb-1">Текущее изображение:</p>
-                                                        <img 
-                                                            src={editFormData.image_preview} 
-                                                            alt="Preview" 
+                                                        <img
+                                                            src={editFormData.image_preview}
+                                                            alt="Preview"
                                                             className="h-20 w-20 object-cover border rounded"
                                                         />
                                                     </div>
@@ -235,9 +235,9 @@ const ProductsManagement = () => {
                                             </div>
                                         ) : (
                                             product.image_preview && (
-                                                <img 
-                                                    src={product.image_preview} 
-                                                    alt={product.name} 
+                                                <img
+                                                    src={product.image_preview}
+                                                    alt={product.name}
                                                     className="h-10 w-10 object-cover rounded"
                                                 />
                                             )
@@ -310,7 +310,13 @@ const ProductsManagement = () => {
                                             product.is_published ? 'Да' : 'Нет'
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{product.seller?.company_name || 'Нет данных'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{product.seller?.company_name ? (
+                                        <Link href={`/admin/users#${product.seller.id}`}>
+                                            {product.seller.company_name}
+                                        </Link>
+                                    ) : (
+                                        'Нет данных'
+                                    )}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {editingProduct === product.id ? (
                                             <div className="flex space-x-2">
@@ -351,12 +357,12 @@ const ProductsManagement = () => {
                     </table>
                 </div>
             </div>
-            
+
             {uploadProgress > 0 && (
                 <div className="fixed bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg w-64">
                     <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                        <div 
-                            className="bg-blue-600 h-2.5 rounded-full" 
+                        <div
+                            className="bg-blue-600 h-2.5 rounded-full"
                             style={{ width: `${uploadProgress}%` }}
                         ></div>
                     </div>

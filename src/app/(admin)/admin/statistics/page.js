@@ -15,6 +15,7 @@ import {
     ArcElement 
 } from 'chart.js'
 import { Line, Bar, Pie } from 'react-chartjs-2'
+import Link from 'next/link'
 
 // Register ChartJS components
 ChartJS.register(
@@ -283,7 +284,7 @@ const StatisticsPage = () => {
                                                         )}
                                                         <div>
                                                             <p className="font-medium">{product.name}</p>
-                                                            <p className="text-sm text-gray-500">{product.sku || '-'}</p>
+                                                            <p className="text-sm text-gray-500">{product.unit || '-'}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -352,11 +353,12 @@ const StatisticsPage = () => {
                                         {stats.recentUsers.map((user, index) => (
                                             <tr key={index}>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <p 
+                                                    <Link
+                                                    href={`/admin/users#${user.id}`} 
                                                         className="text-indigo-600 hover:text-indigo-900"
                                                     >
                                                         {user.name}
-                                                    </p>
+                                                    </Link>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{new Date(user.created_at).toLocaleDateString()}</td>

@@ -25,11 +25,15 @@ const OrderDetails = () => {
         try {
             setIsLoading(true)
             const response = await axios.get(`/api/admin/orders/${orderId}`)
+            console.log(response.data)
             setOrder(response.data)
             setFormData({
                 status: response.data.status,
                 tracking_number: response.data.tracking_number || '',
-                notes: response.data.notes || ''
+                notes: response.data.notes || '',
+                payment_method: response.data.payment_method || 'not_specified',
+                payment_status: response.data.payment_status || 'not_specified',
+                shipping_method: response.data.shipping_method || 'not_specified'
             })
         } catch (err) {
             console.error('Error fetching order:', err)
@@ -97,7 +101,7 @@ const OrderDetails = () => {
                 >
                     <ArrowLeftIcon className="h-5 w-5" />
                 </Link>
-                <h1 className="text-3xl font-bold">Заказ #{order.order_number}</h1>
+                <h1 className="text-3xl font-bold">Заказ #{order.orderNumber}</h1>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -134,37 +138,7 @@ const OrderDetails = () => {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Сумма заказа</p>
-                            <p className="font-medium">₽{order.total_amount}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Трек-номер</p>
-                            {isEditing ? (
-                                <input
-                                    type="text"
-                                    name="tracking_number"
-                                    value={formData.tracking_number}
-                                    onChange={handleChange}
-                                    className="mt-1 w-full px-3 py-2 border rounded-lg"
-                                    placeholder="Введите трек-номер"
-                                />
-                            ) : (
-                                <p className="font-medium">{order.tracking_number || '-'}</p>
-                            )}
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Примечания</p>
-                            {isEditing ? (
-                                <textarea
-                                    name="notes"
-                                    value={formData.notes}
-                                    onChange={handleChange}
-                                    className="mt-1 w-full px-3 py-2 border rounded-lg"
-                                    rows={3}
-                                    placeholder="Добавьте примечания к заказу"
-                                />
-                            ) : (
-                                <p className="font-medium">{order.notes || '-'}</p>
-                            )}
+                            <p className="font-medium">₽{order.totalAmount}</p>
                         </div>
                     </div>
                     <div className="mt-6">
@@ -199,7 +173,7 @@ const OrderDetails = () => {
                     <div className="space-y-3">
                         <div>
                             <p className="text-sm text-gray-500">ФИО</p>
-                            <p className="font-medium">{order.full_name}</p>
+                            <p className="font-medium">{order.fullName}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Email</p>
@@ -213,14 +187,14 @@ const OrderDetails = () => {
                             <p className="text-sm text-gray-500">Адрес доставки</p>
                             <p className="font-medium">{order.address || '-'}</p>
                         </div>
-                        {order.User && (
+                        {order.user && (
                             <div>
                                 <p className="text-sm text-gray-500">Зарегистрированный пользователь</p>
                                 <Link 
-                                    href={`/admin/users/${order.User.id}`}
+                                    href={`/admin/users#${order.user.id}`}
                                     className="font-medium text-indigo-600 hover:text-indigo-800"
                                 >
-                                    {order.User.name} ({order.User.email})
+                                    {order.user.name} ({order.user.email})
                                 </Link>
                             </div>
                         )}
@@ -232,19 +206,63 @@ const OrderDetails = () => {
                     <div className="space-y-3">
                         <div>
                             <p className="text-sm text-gray-500">Способ оплаты</p>
-                            <p className="font-medium">{getPaymentMethodText(order.payment_method)}</p>
+                            {isEditing ? (
+                                <select
+                                    name="payment_method"
+                                    value={formData.payment_method}
+                                    onChange={handleChange}
+                                    className="mt-1 w-full px-3 py-2 border rounded-lg"
+                                >
+                                    <option value="not_specified">Не указан</option>
+                                    <option value="card">Банковская карта</option>
+                                    <option value="cash">Наличные при получении</option>
+                                    <option value="bank_transfer">Банковский перевод</option>
+                                </select>
+                            ) : (
+                                <p className="font-medium">{getPaymentMethodText(order.payment_method || 'not_specified')}</p>
+                            )}
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Статус оплаты</p>
-                            <p className="font-medium">
-                                <span className={`inline-block px-2 py-1 rounded-full text-xs ${getPaymentStatusColor(order.payment_status)}`}>
-                                    {getPaymentStatusText(order.payment_status)}
-                                </span>
-                            </p>
+                            {isEditing ? (
+                                <select
+                                    name="payment_status"
+                                    value={formData.payment_status}
+                                    onChange={handleChange}
+                                    className="mt-1 w-full px-3 py-2 border rounded-lg"
+                                >
+                                    <option value="not_specified">Не указан</option>
+                                    <option value="pending">Ожидает оплаты</option>
+                                    <option value="paid">Оплачен</option>
+                                    <option value="failed">Ошибка оплаты</option>
+                                    <option value="refunded">Возврат средств</option>
+                                </select>
+                            ) : (
+                                <p className="font-medium">
+                                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${getPaymentStatusColor(order.payment_status || 'not_specified')}`}>
+                                        {getPaymentStatusText(order.payment_status || 'not_specified')}
+                                    </span>
+                                </p>
+                            )}
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Способ доставки</p>
-                            <p className="font-medium">{getShippingMethodText(order.shipping_method)}</p>
+                            {isEditing ? (
+                                <select
+                                    name="shipping_method"
+                                    value={formData.shipping_method}
+                                    onChange={handleChange}
+                                    className="mt-1 w-full px-3 py-2 border rounded-lg"
+                                >
+                                    <option value="not_specified">Не указан</option>
+                                    <option value="courier">Курьерская доставка</option>
+                                    <option value="pickup">Самовывоз</option>
+                                    <option value="post">Почта России</option>
+                                    <option value="express">Экспресс-доставка</option>
+                                </select>
+                            ) : (
+                                <p className="font-medium">{getShippingMethodText(order.shipping_method || 'not_specified')}</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -258,8 +276,7 @@ const OrderDetails = () => {
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Товар</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Цена</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Количество</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Сумма</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -267,29 +284,38 @@ const OrderDetails = () => {
                                 <tr key={item.id}>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
-                                            {item.product?.image && (
+                                            {item.product?.image_preview && (
                                                 <img 
-                                                    src={item.product.image} 
+                                                    src={item.product.image_preview} 
                                                     alt={item.product.name}
                                                     className="h-10 w-10 object-cover rounded mr-3"
                                                 />
                                             )}
                                             <div>
                                                 <p className="font-medium">{item.product?.name || 'Товар недоступен'}</p>
-                                                <p className="text-sm text-gray-500">{item.product?.sku || '-'}</p>
+                                                <p className="text-sm text-gray-500">{item.product?.description || '-'}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">₽{item.price}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{item.quantity}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">₽{item.price * item.quantity}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {item.is_send ? (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Отправлен
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Не отправлен
+                                            </span>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                         <tfoot className="bg-gray-50">
                             <tr>
-                                <td colSpan="3" className="px-6 py-4 text-right font-medium">Итого:</td>
-                                <td className="px-6 py-4 font-bold">₽{order.total_amount}</td>
+                                <td colSpan="2" className="px-6 py-4 text-right font-medium">Итого:</td>
+                                <td className="px-6 py-4 font-bold">₽{order.totalAmount}</td>
                             </tr>
                         </tfoot>
                     </table>

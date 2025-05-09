@@ -60,7 +60,7 @@ const CartIcon = () => {
                                             {item.product?.name}
                                         </p>
                                         <p className="text-sm text-gray-500">
-                                            {item.quantity} × ₽{item.product?.price}
+                                            ₽{item.product?.price}
                                         </p>
                                     </div>
                                 </Link>

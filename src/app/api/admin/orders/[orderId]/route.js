@@ -6,14 +6,44 @@ export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
 export const revalidate = 0
 
+// Helper function to recursively serialize all BigInt values
+const serializeData = (data) => {
+  if (data === null || data === undefined) {
+    return data;
+  }
+  
+  if (typeof data === 'bigint') {
+    return Number(data);
+  }
+  
+  if (Array.isArray(data)) {
+    return data.map(item => serializeData(item));
+  }
+  
+  if (typeof data === 'object' && data !== null) {
+    if (data instanceof Date) {
+      return data.toISOString();
+    }
+    
+    const result = {};
+    for (const key in data) {
+      result[key] = serializeData(data[key]);
+    }
+    return result;
+  }
+  
+  return data;
+};
+
 export async function GET(request, { params }) {
     try {
         const session = await auth()
-        
+
         if (!session?.user?.id || !session?.user?.is_admin) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
+        // Await params before accessing properties
         const resolvedParams = await params
         const orderId = resolvedParams.orderId
         
@@ -29,7 +59,7 @@ export async function GET(request, { params }) {
                         product: true
                     }
                 },
-                User: {
+                user: {
                     select: {
                         id: true,
                         name: true,
@@ -39,38 +69,14 @@ export async function GET(request, { params }) {
                 }
             }
         })
-        
+
         if (!order) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 })
         }
-        
-        // Serialize the data
-        const serializedOrder = {
-            ...order,
-            id: Number(order.id),
-            userId: Number(order.userId),
-            totalAmount: Number(order.totalAmount),
-            User: order.User ? {
-                ...order.User,
-                id: Number(order.User.id)
-            } : null,
-            items: order.items.map(item => ({
-                ...item,
-                id: Number(item.id),
-                order_id: Number(item.order_id),
-                product_id: Number(item.product_id),
-                price: Number(item.price),
-                product: item.product ? {
-                    ...item.product,
-                    id: Number(item.product.id),
-                    seller_id: Number(item.product.seller_id),
-                    price: Number(item.product.price)
-                } : null
-            })),
-            createdAt: order.createdAt?.toISOString(),
-            updatedAt: order.updatedAt?.toISOString()
-        }
-        
+
+        // Use the recursive serialization function to handle all BigInt values
+        const serializedOrder = serializeData(order);
+
         return NextResponse.json(serializedOrder)
     } catch (error) {
         console.error('Error fetching order:', error)
@@ -81,14 +87,13 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
     try {
         const session = await auth()
-        
+
         if (!session?.user?.id || !session?.user?.is_admin) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const resolvedParams = await params
         const orderId = resolvedParams.orderId
-        console.log('Received orderId:', orderId)
         
         if (!orderId) {
             return NextResponse.json({ error: 'Order ID is required' }, { status: 400 })
@@ -97,48 +102,40 @@ export async function PUT(request, { params }) {
         const data = await request.json()
         
         // Only allow updating certain fields
-        const { status, tracking_number, notes } = data
+        const { status, tracking_number, notes, payment_method, payment_status, shipping_method } = data
         
         // Create update data object with only defined values
         const updateData = {}
         if (status) updateData.status = status
-        
+        if (tracking_number !== undefined) updateData.tracking_number = tracking_number
+        if (notes !== undefined) updateData.notes = notes
+        if (payment_method) updateData.payment_method = payment_method
+        if (payment_status) updateData.payment_status = payment_status
+        if (shipping_method) updateData.shipping_method = shipping_method
+
         const order = await prisma.order.update({
             where: { id: BigInt(orderId) },
             data: updateData,
             include: {
-                items: true,
+                items: {
+                    include: {
+                        product: true
+                    }
+                },
                 user: {
                     select: {
                         id: true,
                         name: true,
-                        email: true
+                        email: true,
+                        phone: true
                     }
                 }
             }
         })
         
-        // Serialize the data
-        const serializedOrder = {
-            ...order,
-            id: Number(order.id),
-            userId: order.userId ? Number(order.userId) : null,
-            totalAmount: Number(order.totalAmount),
-            user: order.user ? {
-                ...order.user,
-                id: Number(order.user.id)
-            } : null,
-            items: order.items.map(item => ({
-                ...item,
-                id: Number(item.id),
-                orderId: item.orderId ? Number(item.orderId) : null,
-                productId: item.productId ? Number(item.productId) : null,
-                price: Number(item.price)
-            })),
-            createdAt: order.createdAt?.toISOString(),
-            updatedAt: order.updatedAt?.toISOString()
-        }
-        
+        // Use the serializeData helper function to handle all BigInt values
+        const serializedOrder = serializeData(order);
+
         return NextResponse.json(serializedOrder)
     } catch (error) {
         console.error('Error updating order:', error)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/auth'
 import { useCart } from '@/hooks/cart'
 import Button from '@/components/Button'
@@ -9,9 +9,25 @@ const AddToCartBtn = ({ productId }) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(false)
+    const [isInCart, setIsInCart] = useState(false)
+    const [cartItemId, setCartItemId] = useState(null)
     const { user } = useAuth({ middleware: 'guest' })
-    const { addToCart } = useCart()
+    const { cart, addToCart, removeFromCart } = useCart()
     const router = useRouter()
+
+    // Check if product is already in cart
+    useEffect(() => {
+        if (cart?.items && Array.isArray(cart.items)) {
+            const cartItem = cart.items.find(item => Number(item.product.id) === Number(productId))
+            if (cartItem) {
+                setIsInCart(true)
+                setCartItemId(cartItem.id)
+            } else {
+                setIsInCart(false)
+                setCartItemId(null)
+            }
+        }
+    }, [cart, productId])
 
     const handleClick = async () => {
         setLoading(true)
@@ -23,12 +39,27 @@ const AddToCartBtn = ({ productId }) => {
         }
 
         try {
-            await addToCart(productId, 1)
-            setSuccess(true)
-            setTimeout(() => setSuccess(false), 1500)
+            if (isInCart && cartItemId) {
+                // Remove from cart if already in cart
+                await removeFromCart(cartItemId)
+                setIsInCart(false)
+                setCartItemId(null)
+                setSuccess(true)
+                setTimeout(() => setSuccess(false), 1500)
+            } else {
+                // Add to cart
+                await addToCart(productId)
+                setIsInCart(true)
+                setSuccess(true)
+                setTimeout(() => setSuccess(false), 1500)
+            }
         } catch (error) {
-            console.error('Error adding to cart:', error)
-            setError(error.response?.data?.error || 'Ошибка при добавлении в корзину')
+            console.error('Error managing cart:', error)
+            if (error.response?.status === 409) {
+                setError('Этот товар уже добавлен в корзину')
+            } else {
+                setError(error.response?.data?.error || 'Ошибка при управлении корзиной')
+            }
         } finally {
             setLoading(false)
         }
@@ -43,7 +74,7 @@ const AddToCartBtn = ({ productId }) => {
                 <Button
                     onClick={handleClick}
                     disabled={loading}
-                    className={`rounded ${success ? 'bg-green-500 hover:bg-green-600' : ''} transition-all duration-300`}
+                    className={`rounded ${success ? 'bg-green-500 hover:bg-green-600' : isInCart ? 'bg-gray-500 hover:bg-gray-600' : ''} transition-all duration-300`}
                 >
                     <AnimatePresence mode="wait">
                         {loading ? (
@@ -53,7 +84,7 @@ const AddToCartBtn = ({ productId }) => {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                             >
-                                Добавление...
+                                {isInCart ? 'Удаление...' : 'Добавление...'}
                             </motion.span>
                         ) : success ? (
                             <motion.span
@@ -62,7 +93,16 @@ const AddToCartBtn = ({ productId }) => {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                             >
-                                ✓ Добавлено!
+                                ✓ {isInCart ? 'Добавлено!' : 'Удалено!'}
+                            </motion.span>
+                        ) : isInCart ? (
+                            <motion.span
+                                key="remove"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                            >
+                                Удалить из корзины
                             </motion.span>
                         ) : (
                             <motion.span

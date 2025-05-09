@@ -40,7 +40,7 @@ const Checkout = () => {
     useEffect(() => {
         if (cart?.items && Array.isArray(cart.items)) {
             const total = cart.items.reduce(
-                (sum, item) => sum + item.product.price * item.quantity,
+                (sum, item) => sum + item.product.price, // Remove quantity multiplication
                 0,
             )
             setTotalPrice(total)

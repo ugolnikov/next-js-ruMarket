@@ -30,7 +30,7 @@ const CartPage = () => {
     useEffect(() => {
         if (cart?.items && Array.isArray(cart.items)) {
             const total = cart.items.reduce(
-                (sum, item) => sum + item.product.price * item.quantity,
+                (sum, item) => sum + item.product.price, // Remove quantity multiplication
                 0,
             )
             setTotalPrice(total)
@@ -81,7 +81,7 @@ const CartPage = () => {
                             key={item.product.id}
                             data-testid="cart-item"
                             className="flex flex-col md:flex-row justify-between items-center border-b p-4 hover:bg-[#dddddd] transition duration-300">
-                            <div className="w-full md:w-1/5 flex justify-center md:justify-start mb-4 md:mb-0">
+                            <div className="w-full md:w-1/4 flex justify-center md:justify-start mb-4 md:mb-0">
                                 <div className="relative w-24 h-24">
                                     <Image
                                         src={firstImage}
@@ -94,19 +94,15 @@ const CartPage = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="w-full md:w-1/5">
+                            <div className="w-full md:w-1/4">
                                 <p className="font-semibold">Продукт:</p>
                                 <p>{item.product.name}</p>
                             </div>
-                            <div className="w-full md:w-1/5">
+                            <div className="w-full md:w-1/4">
                                 <p className="font-semibold">Цена:</p>
                                 <p>{item.product.price}₽</p>
                             </div>
-                            <div className="w-full md:w-1/5">
-                                <p className="font-semibold">Количество:</p>
-                                <p>{item.quantity}</p>
-                            </div>
-                            <div className="w-full md:w-1/5 flex justify-center">
+                            <div className="w-full md:w-1/4 flex justify-center">
                                 <Button
                                     data-testid="remove-from-cart"
                                     onClick={() => handleRemoveItem(item.id)}

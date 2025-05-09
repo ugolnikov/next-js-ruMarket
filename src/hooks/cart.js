@@ -24,11 +24,11 @@ export const useCart = () => {
         }
     )
 
-    const addToCart = async (productId, quantity = 1) => {
+    const addToCart = async (productId) => {
         try {
             const response = await axios.post('/api/cart', {
                 product_id: productId,
-                quantity,
+                // Remove quantity parameter
             })
             await mutate()
             return response.data
@@ -47,15 +47,7 @@ export const useCart = () => {
         }
     }
 
-    const updateQuantity = async (cartItemId, quantity) => {
-        try {
-            await axios.put(`/api/cart/${cartItemId}`, { quantity })
-            await mutate()
-        } catch (error) {
-            throw error
-        }
-    }
-
+    // Remove or modify updateQuantity function since we don't need it anymore
     const clearCart = async () => {
         try {
             await axios.delete('/api/cart')
@@ -71,8 +63,7 @@ export const useCart = () => {
         isLoading: !error && !cart,
         addToCart,
         removeFromCart,
-        updateQuantity,
         clearCart,
         mutateCart: mutate,
     }
-} 
+}

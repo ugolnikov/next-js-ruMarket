@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
+
 // Принудительно делаем роут динамическим
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -55,80 +56,54 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { product_id, quantity = 1 } = await request.json()
+        const { product_id } = await request.json()
         
         if (!product_id) {
             return NextResponse.json({ error: 'Product ID is required' }, { status: 400 })
         }
 
-        // Check if product exists
-        const product = await prisma.product.findUnique({
-            where: { id: Number(product_id) }
-        })
-
-        if (!product) {
-            return NextResponse.json({ error: 'Product not found' }, { status: 404 })
-        }
-
-        // Check if item already in cart
+        // Check if product already exists in cart
         const existingItem = await prisma.cart_items.findFirst({
             where: {
                 user_id: session.user.id,
-                product_id: Number(product_id)
+                product_id: product_id
             }
         })
 
-        let cartItem
         if (existingItem) {
-            // Update quantity if item exists
-            cartItem = await prisma.cart_items.update({
-                where: { id: existingItem.id },
-                data: {
-                    quantity: existingItem.quantity + quantity
-                },
-                include: {
-                    products: true
-                }
-            })
-        } else {
-            // Create new cart item
-            cartItem = await prisma.cart_items.create({
-                data: {
-                    user_id: session.user.id,
-                    product_id: Number(product_id),
-                    quantity
-                },
-                include: {
-                    products: true
-                }
-            })
+            return NextResponse.json(
+                { error: 'Product already in cart' }, 
+                { status: 409 }
+            )
         }
 
-        // Get updated cart
-        const updatedCart = await prisma.cart_items.findMany({
-            where: { user_id: session.user.id },
+        // Always add with quantity 1 - using Prisma directly
+        const cartItem = await prisma.cart_items.create({
+            data: {
+                user_id: session.user.id,
+                product_id: product_id,
+                quantity: 1
+            },
             include: {
                 products: true
             }
         })
-
-        // Serialize the cart
-        const serializedItems = updatedCart.map(item => ({
-            id: Number(item.id),
-            quantity: Number(item.quantity),
+        
+        // Serialize the cart item
+        const serializedItem = {
+            id: Number(cartItem.id),
+            quantity: Number(cartItem.quantity),
             product: {
-                ...item.products,
-                id: Number(item.products.id),
-                seller_id: Number(item.products.seller_id),
-                price: Number(item.products.price),
-                createdAt: item.products.createdAt?.toISOString(),
-                updatedAt: item.products.updatedAt?.toISOString()
+                ...cartItem.products,
+                id: Number(cartItem.products.id),
+                seller_id: Number(cartItem.products.seller_id),
+                price: Number(cartItem.products.price),
+                createdAt: cartItem.products.createdAt?.toISOString(),
+                updatedAt: cartItem.products.updatedAt?.toISOString()
             }
-        }))
-
-        return NextResponse.json({
-            items: serializedItems
-        })
+        }
+        
+        return NextResponse.json(serializedItem)
     } catch (error) {
         console.error('Error adding to cart:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

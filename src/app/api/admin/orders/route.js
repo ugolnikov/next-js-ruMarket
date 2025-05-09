@@ -34,31 +34,31 @@ export async function GET() {
             }
         })
         
-        // Serialize the data
+        // Serialize the data - ensure all BigInt values are converted to Numbers
         const serializedOrders = orders.map(order => ({
             ...order,
-            id: Number(order.id),
+            id: order.id ? Number(order.id) : null,
             userId: order.userId ? Number(order.userId) : null,
-            totalAmount: Number(order.totalAmount),
+            totalAmount: order.totalAmount ? Number(order.totalAmount) : 0,
             user: order.user ? {
                 ...order.user,
-                id: Number(order.user.id)
+                id: order.user.id ? Number(order.user.id) : null
             } : null,
             items: order.items.map(item => ({
                 ...item,
-                id: Number(item.id),
+                id: item.id ? Number(item.id) : null,
                 orderId: item.orderId ? Number(item.orderId) : null,
                 productId: item.productId ? Number(item.productId) : null,
-                price: Number(item.price),
+                price: item.price ? Number(item.price) : 0,
                 product: item.product ? {
                     ...item.product,
-                    id: Number(item.product.id),
+                    id: item.product.id ? Number(item.product.id) : null,
                     seller_id: item.product.seller_id ? Number(item.product.seller_id) : null,
-                    price: Number(item.product.price)
+                    price: item.product.price ? Number(item.product.price) : 0
                 } : null
             })),
-            createdAt: order.createdAt?.toISOString(),
-            updatedAt: order.updatedAt?.toISOString()
+            createdAt: order.createdAt ? order.createdAt.toISOString() : null,
+            updatedAt: order.updatedAt ? order.updatedAt.toISOString() : null
         }))
         
         return NextResponse.json(serializedOrders)

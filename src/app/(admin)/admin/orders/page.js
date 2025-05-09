@@ -119,8 +119,8 @@ const OrdersManagement = () => {
                                                     {order.items.map((item, index) => (
                                                         <li key={index} className="mb-1">
                                                             {item.product?.name || 'Неизвестный товар'} 
-                                                            <span className="text-gray-500">
-                                                                ({item.quantity} шт. × ₽{item.price.toLocaleString()})
+                                                            <span className="text-gray-500 ms-2">
+                                                                ({item.price.toLocaleString()}₽)
                                                             </span>
                                                         </li>
                                                     ))}

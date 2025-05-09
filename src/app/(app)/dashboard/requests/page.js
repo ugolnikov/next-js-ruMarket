@@ -32,8 +32,10 @@ export default function RequestsPage() {
     const fetchRequests = async () => {
         try {
             const response = await axios.get('/api/seller/orders')
+            console.log('Fetched requests:', response.data) // Add logging to see the data
             setRequests(response.data)
         } catch (err) {
+            console.error('Error fetching requests:', err)
             setError('Ошибка при загрузке заявок')
         } finally {
             setLoading(false)
@@ -49,76 +51,84 @@ export default function RequestsPage() {
 
     const confirmSend = async () => {
         try {
-            await axios.put(`/api/seller/orders/${selectedRequestId}/status`, {
+            console.log('Sending request to update status for order:', selectedRequestId)
+            const response = await axios.put(`/api/seller/orders/${selectedRequestId}/status`, {
                 is_send: true
             })
-            await fetchRequests()
+            console.log('Update response:', response.data)
             setModalMessage('Товар успешно отправлен')
+            
+            // Fetch updated requests after successful update
+            await fetchRequests()
+            
+            // Close modal after a delay
             setTimeout(() => setShowModal(false), 2000)
         } catch (error) {
-            setModalMessage('Ошибка при отправлении товара')
+            console.error('Error sending item:', error)
+            setModalMessage(`Ошибка при отправлении товара: ${error.response?.data?.error || error.message}`)
         }
     }
 
     if (loading) return <Loader />
     if (error) return <div className="text-center text-red-500">{error}</div>
     return (
-        <>
-            <Header title="Управление заявками" />
-            <div className="container mx-auto px-4 py-8">
-            {requests.length === 0 ? (
-                <p>У вас нет заявок</p>
-            ) : (
-                <div className="container mx-auto p-4">
-                    <table className="min-w-full bg-white border border-gray-300">
-                        <thead>
-                            <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                                <th className="py-3 px-6 text-left">Id</th>
-                                <th className="py-3 px-6 text-left">Наименование продукта</th>
-                                <th className="py-3 px-6 text-left">Цена за ед.</th>
-                                <th className="py-3 px-6 text-left">Кол-во</th>
-                                <th className="py-3 px-6 text-left">Итоговая цена</th>
-                                <th className="py-3 px-6 text-left">Адрес</th>
-                                <th className="py-3 px-6 text-left">Статус</th>
-                                <th className="py-3 px-6 text-left">Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-gray-600 text-sm font-light">
-                            {requests.map(request => (
-                                <tr key={request.id} className="border-b border-gray-300 hover:bg-gray-100">
-                                    <td className="py-3 px-6">{request.id}</td>
-                                    <td className="py-3 px-6">{request.items[0].product.name}</td>
-                                    <td className="py-3 px-6">{request.items[0].price}₽</td>
-                                    <td className="py-3 px-6">{request.items[0].quantity}</td>
-                                    <td className="py-3 px-6">{(request.items[0].price * request.items[0].quantity)}₽</td>
-                                    <td className="py-3 px-6">{request.address}</td>
-                                    <td className="py-3 px-6">{request.is_send ? (<span className='text-green-600'>Отправлен</span>) : (<span className='text-red-600'>Не отправлен</span>)}</td>
-                                    {!request.is_send &&
-                                    (<td className="py-3 px-6">
-                                        <Button
-                                            onClick={() => handleSend(request.id)}>
-                                            Отправить
-                                        </Button>
-                                    </td>)
-                                    }
+        // Update the table row to check item.is_send instead of request.is_send
+            <>
+                <Header title="Управление заявками" />
+                <div className="container mx-auto px-4 py-8">
+                {requests.length === 0 ? (
+                    <p>У вас нет заявок</p>
+                ) : (
+                    <div className="container mx-auto p-4">
+                        <table className="min-w-full bg-white border border-gray-300">
+                            <thead>
+                                <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                    <th className="py-3 px-6 text-left">Id</th>
+                                    <th className="py-3 px-6 text-left">Наименование продукта</th>
+                                    <th className="py-3 px-6 text-left">Цена за ед.</th>
+                                    <th className="py-3 px-6 text-left">Кол-во</th>
+                                    <th className="py-3 px-6 text-left">Итоговая цена</th>
+                                    <th className="py-3 px-6 text-left">Адрес</th>
+                                    <th className="py-3 px-6 text-left">Статус</th>
+                                    <th className="py-3 px-6 text-left">Действия</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-            <Modal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                title="Подтверждение"
-                onConfirm={
-                    modalMessage ===
-                    'Вы уверены, что отправили этот товар?'
-                        ? confirmSend
-                        : undefined
-                }>
-                <p>{modalMessage}</p>
-            </Modal>
-        </div>
-        </>)
+                            </thead>
+                            <tbody className="text-gray-600 text-sm font-light">
+                                {requests.map(request => (
+                                    <tr key={request.id} className="border-b border-gray-300 hover:bg-gray-100">
+                                        <td className="py-3 px-6">{request.id}</td>
+                                        <td className="py-3 px-6">{request.items[0].product.name}</td>
+                                        <td className="py-3 px-6">{request.items[0].price}₽</td>
+                                        <td className="py-3 px-6">{request.items[0].quantity}</td>
+                                        <td className="py-3 px-6">{(request.items[0].price * request.items[0].quantity)}₽</td>
+                                        <td className="py-3 px-6">{request.address}</td>
+                                        <td className="py-3 px-6">{request.items[0].is_send ? (<span className='text-green-600'>Отправлен</span>) : (<span className='text-red-600'>Не отправлен</span>)}</td>
+                                        {!request.items[0].is_send &&
+                                        (<td className="py-3 px-6">
+                                            <Button
+                                                onClick={() => handleSend(request.id)}>
+                                                Отправить
+                                            </Button>
+                                        </td>)
+                                        }
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+                <Modal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    title="Подтверждение"
+                    onConfirm={
+                        modalMessage ===
+                        'Вы уверены, что отправили этот товар?'
+                            ? confirmSend
+                            : undefined
+                    }>
+                    <p>{modalMessage}</p>
+                </Modal>
+            </div>
+            </>)
 }
