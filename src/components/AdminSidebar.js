@@ -59,11 +59,10 @@ const AdminSidebar = () => {
                             <li key={item.href} className="mb-2">
                                 <Link
                                     href={item.href}
-                                    className={`flex items-center p-2 rounded-lg ${
-                                        isActive(item.href)
+                                    className={`flex items-center p-2 rounded-lg ${isActive(item.href)
                                             ? 'bg-indigo-700'
                                             : 'hover:bg-indigo-700'
-                                    }`}>
+                                        }`}>
                                     <item.icon className="h-5 w-5 mr-3" />
                                     {item.name}
                                 </Link>

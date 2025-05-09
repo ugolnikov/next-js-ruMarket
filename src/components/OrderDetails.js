@@ -171,7 +171,7 @@ export default function OrderDetails({ orderNumber }) {
 
             <div className="bg-white shadow rounded-lg overflow-hidden">
                 <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex justify-between items-center mb-6 gap-8">
                         <Button onClick={() => router.back()} className="text-gray-600 hover:text-white rounded">
                             <svg
                                 className="w-6 h-6"
@@ -256,10 +256,10 @@ export default function OrderDetails({ orderNumber }) {
                                         <h3 className="text-lg font-medium">
                                             {item.product.name}
                                         </h3>
-                                        <p className="text-gray-600">
+                                        <p className="text-gray-600 hidden sm:block">
                                         <b>Описание:</b> {item.product.description}
                                         </p>
-                                        <p className="text-gray-600">
+                                        <p className="text-gray-600 hidden sm:block">
                                         <b>Единица измерения:</b> {item.product.unit}
                                         </p>
                                     </div>

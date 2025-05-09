@@ -191,20 +191,20 @@ const Dashboard = () => {
     return (
         <>
             <Header title="Личный кабинет" />
-            <div className="py-12">
+            <div className="py-5 sm:py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 bg-white border-b border-gray-200">
                             <h2 className="text-3xl font-bold text-[#4438ca]">
                                 Добро пожаловать, {user?.name}!
                             </h2>
-                            <p className="mt-4 text-lg text-gray-700">
+                            <p className="mt-4 text-lg text-gray-700 text-center sm:text-left">
                                 Ваш email: {user?.email}
                             </p>
 
                             {/* Блок с телефоном */}
                             <div className="mt-4 text-lg text-gray-700">
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 flex-col sm:flex-row">
                                     <span>
                                         Телефон: {user?.phone || 'Не указан'}
                                     </span>
@@ -214,7 +214,7 @@ const Dashboard = () => {
                                             setNewPhone(user?.phone || '')
                                             setPhoneError('')
                                         }}
-                                        className="text-sm rounded !p-1">
+                                        className="text-sm rounded sm:!p-1">
                                         {isEditingPhone ? 'Отмена' : 'Изменить'}
                                     </Button>
                                 </div>
@@ -254,7 +254,7 @@ const Dashboard = () => {
                                 )}
                             </div>
 
-                            <p className="mt-4 text-lg text-gray-700">
+                            <p className="flex mt-4 text-lg text-gray-700 items-center flex-col sm:flex-row">
                                 Роль: 
                                 {user?.role === 'seller' ? (
                                     <>
@@ -262,7 +262,7 @@ const Dashboard = () => {
                                             {'  '}Продавец -{'  '}
                                         </span>
                                         <Button
-                                            className="text-sm rounded !p-1"
+                                            className="text-sm rounded sm:!p-1"
                                             onClick={() =>
                                                 changeRole()
                                             }>
@@ -275,7 +275,7 @@ const Dashboard = () => {
                                             {'  '}Покупатель -{'  '}
                                         </span>
                                         <Button
-                                            className="text-sm rounded !p-1"
+                                            className="text-sm rounded sm:!p-1"
                                             onClick={() =>
                                                 changeRole({
                                                     url: '/api/change_role/seller',
@@ -502,11 +502,11 @@ const Dashboard = () => {
             </div>
 
             {user?.role === 'customer' ? (
-                <div className="pb-12">
+                <div className="pb-6 sm:pb-12">
                     <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                         <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                             <div className="p-6 bg-white border-b border-gray-200">
-                                <div className="flex justify-between items-center mb-6">
+                                <div className="flex justify-between items-center mb-6 flex-col gap-4 sm:flex-row">
                                     <h2 className="text-3xl font-bold text-[#4438ca]">
                                         Ваши заказы:
                                     </h2>
