@@ -67,16 +67,16 @@ const Checkout = () => {
         if (!formData.email) newErrors.email = 'Email обязателен'
         if (!formData.phone) newErrors.phone = 'Телефон обязателен'
         if (!formData.address) newErrors.address = 'Адрес обязателен'
-        
+
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        
+
         if (!validateForm()) return
-        
+
         // Show payment form instead of submitting order
         setShowPaymentForm(true)
     }
@@ -85,7 +85,7 @@ const Checkout = () => {
         setPaymentId(newPaymentId)
         setPaymentStatus('processing')
         setIsSubmitting(true)
-        
+
         try {
             // Now submit the order with payment information
             const response = await axios.post('/api/orders', {
@@ -98,7 +98,7 @@ const Checkout = () => {
                 payment_id: newPaymentId,
                 paid: true
             })
-            
+
             // Clear cart and set success status
             await clearCart()
             setPaymentStatus('success')
@@ -125,21 +125,21 @@ const Checkout = () => {
 
     if (!cart?.items || cart.items.length === 0) {
         return (
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
                 className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
             >
                 <div className="text-center">
-                    <motion.h2 
+                    <motion.h2
                         initial={{ y: -20 }}
                         animate={{ y: 0 }}
                         className="text-2xl font-bold mb-4"
                     >
                         Ваша корзина пуста
                     </motion.h2>
-                    <motion.p 
+                    <motion.p
                         initial={{ y: -10, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
@@ -163,7 +163,7 @@ const Checkout = () => {
     // Payment status indicator component
     const PaymentStatusIndicator = () => {
         if (paymentStatus === 'pending') return null;
-        
+
         const statusConfig = {
             processing: {
                 text: 'Обработка платежа...',
@@ -193,11 +193,11 @@ const Checkout = () => {
                 )
             }
         };
-        
+
         const config = statusConfig[paymentStatus];
-        
+
         return (
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`mb-6 p-4 ${config.bgColor} rounded-md flex items-center`}
@@ -205,7 +205,7 @@ const Checkout = () => {
                 {config.icon}
                 <p className={config.textColor}>{config.text}</p>
                 {paymentStatus === 'success' && (
-                    <motion.div 
+                    <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.5, type: "spring" }}
@@ -219,24 +219,24 @@ const Checkout = () => {
     };
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
             className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
         >
-            <motion.h1 
+            <motion.h1
                 initial={{ y: -20 }}
                 animate={{ y: 0 }}
                 className="text-2xl font-bold mb-6"
             >
                 Оформление заказа
             </motion.h1>
-            
+
             <PaymentStatusIndicator />
-            
+
             {success && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-6 p-4 bg-green-50 rounded-md flex items-center"
@@ -245,9 +245,9 @@ const Checkout = () => {
                     <p className="text-green-700">{success}</p>
                 </motion.div>
             )}
-            
+
             {errors.form && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-6 p-4 bg-red-50 rounded-md"
@@ -255,18 +255,18 @@ const Checkout = () => {
                     <p className="text-red-700">{errors.form}</p>
                 </motion.div>
             )}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Shipping Information Form */}
                 {!showPaymentForm ? (
-                    <motion.div 
+                    <motion.div
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
                         className="bg-white p-6 rounded-lg shadow-md"
                     >
                         <h2 className="text-xl font-semibold mb-4">Информация о доставке</h2>
-                        
+
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="fullName">
@@ -283,7 +283,7 @@ const Checkout = () => {
                                 />
                                 {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
                             </div>
-                            
+
                             <div className="mb-4">
                                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
                                     Email
@@ -299,7 +299,7 @@ const Checkout = () => {
                                 />
                                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                             </div>
-                            
+
                             <div className="mb-4">
                                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
                                     Телефон
@@ -315,7 +315,7 @@ const Checkout = () => {
                                 />
                                 {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                             </div>
-                            
+
                             <div className="mb-4">
                                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="address">
                                     Адрес доставки
@@ -331,7 +331,7 @@ const Checkout = () => {
                                 ></motion.textarea>
                                 {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                             </div>
-                            
+
                             <div className="mt-6">
                                 <motion.div
                                     whileHover={{ scale: 1.02 }}
@@ -354,27 +354,27 @@ const Checkout = () => {
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
                     >
-                        <CardPaymentForm 
-                            amount={totalPrice} 
+                        <CardPaymentForm
+                            amount={totalPrice}
                             onPaymentSuccess={handlePaymentSuccess}
                             onCancel={handlePaymentCancel}
                         />
                     </motion.div>
                 )}
-                
+
                 {/* Order Summary */}
-                <motion.div 
+                <motion.div
                     initial={{ x: 20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
                     className="bg-white p-6 rounded-lg shadow-md"
                 >
                     <h2 className="text-xl font-semibold mb-4">Ваш заказ</h2>
-                    
+
                     <div className="divide-y divide-gray-200">
                         {cart.items.map((item, index) => (
-                            <motion.div 
-                                key={item.id} 
+                            <motion.div
+                                key={item.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 * index }}
@@ -383,7 +383,9 @@ const Checkout = () => {
                                 <div>
                                     <h3 className="text-sm font-medium">{item.product.name}</h3>
                                     <p className="text-sm text-gray-500">
-                                        {item.quantity} x {item.product.price.toLocaleString('ru-RU')} ₽
+                                        {item.product.description.length > 50
+                                            ? item.product.description.slice(0, 50) + '...'
+                                            : item.product.description}
                                     </p>
                                 </div>
                                 <p className="text-sm font-medium">
@@ -392,8 +394,8 @@ const Checkout = () => {
                             </motion.div>
                         ))}
                     </div>
-                    
-                    <motion.div 
+
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
@@ -401,7 +403,7 @@ const Checkout = () => {
                     >
                         <div className="flex justify-between">
                             <p className="text-sm font-medium">Итого</p>
-                            <motion.p 
+                            <motion.p
                                 className="text-lg font-bold"
                                 initial={{ scale: 1 }}
                                 animate={{ scale: [1, 1.1, 1] }}
@@ -414,7 +416,7 @@ const Checkout = () => {
 
                     {/* Payment Status Display */}
                     {paymentId && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             transition={{ delay: 0.3 }}
@@ -428,16 +430,15 @@ const Checkout = () => {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-sm text-gray-600">Статус:</span>
-                                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                                        paymentStatus === 'success' ? 'bg-green-100 text-green-800' : 
-                                        paymentStatus === 'processing' ? 'bg-blue-100 text-blue-800' : 
-                                        paymentStatus === 'failed' ? 'bg-red-100 text-red-800' : 
-                                        'bg-gray-100 text-gray-800'
-                                    }`}>
-                                        {paymentStatus === 'success' ? 'Оплачен' : 
-                                         paymentStatus === 'processing' ? 'Обработка' : 
-                                         paymentStatus === 'failed' ? 'Ошибка' : 
-                                         'Ожидание'}
+                                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${paymentStatus === 'success' ? 'bg-green-100 text-green-800' :
+                                            paymentStatus === 'processing' ? 'bg-blue-100 text-blue-800' :
+                                                paymentStatus === 'failed' ? 'bg-red-100 text-red-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                        }`}>
+                                        {paymentStatus === 'success' ? 'Оплачен' :
+                                            paymentStatus === 'processing' ? 'Обработка' :
+                                                paymentStatus === 'failed' ? 'Ошибка' :
+                                                    'Ожидание'}
                                     </span>
                                 </div>
                             </div>
