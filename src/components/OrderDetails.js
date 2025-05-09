@@ -158,6 +158,19 @@ export default function OrderDetails({ orderNumber }) {
                 return status
         }
     }
+    
+    // Add helper functions for payment status
+    const getPaymentStatusColor = (paid) => {
+        if (paid === true) return 'bg-green-100 text-green-800'
+        if (paid === false) return 'bg-red-100 text-red-800'
+        return 'bg-gray-100 text-gray-800'
+    }
+    
+    const getPaymentStatusText = (paid) => {
+        if (paid === true) return 'Оплачен'
+        if (paid === false) return 'Не оплачен'
+        return 'Статус не определен'
+    }
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -204,6 +217,18 @@ export default function OrderDetails({ orderNumber }) {
                                         </span>
                                     </p>
                                     <p>
+                                        <span className="font-medium">Статус оплаты: </span>
+                                        <span className={`px-2 py-1 rounded-full text-sm ${getPaymentStatusColor(order.paid)}`}>
+                                            {getPaymentStatusText(order.paid)}
+                                        </span>
+                                    </p>
+                                    {order.payment_id && (
+                                        <p>
+                                            <span className="font-medium">Номер оплаты: </span>
+                                            {order.payment_id}
+                                        </p>
+                                    )}
+                                    <p>
                                         <span className="font-medium">Дата заказа: </span>
                                         {formatDate(order.createdAt)}
                                     </p>
@@ -228,6 +253,10 @@ export default function OrderDetails({ orderNumber }) {
                                     <p>
                                         <span className="font-medium">Email: </span>
                                         {order.email}
+                                    </p>
+                                    <p>
+                                        <span className="font-medium">Адрес доставки: </span>
+                                        {order.address}
                                     </p>
                                 </div>
                             </div>

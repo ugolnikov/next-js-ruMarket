@@ -69,7 +69,16 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Invalid order data: shipping_address is required' }, { status: 400 })
         }
 
-        const order = await db.createOrder(session.user.id, orderData)
+        // Add payment information to the order data
+        const paymentInfo = {
+            payment_id: orderData.payment_id || null,
+            paid: orderData.paid || false
+        }
+
+        const order = await db.createOrder(session.user.id, {
+            ...orderData,
+            ...paymentInfo
+        })
 
         if (!order) {
             throw new Error('Failed to create order')

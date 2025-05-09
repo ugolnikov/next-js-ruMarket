@@ -6,12 +6,18 @@ import Button from '@/components/Button'
 import axios from '@/lib/axios'
 import Loader from '@/components/Loader'
 import { useCart } from '@/hooks/cart'
+import CardPaymentForm from '@/components/CardPaymentForm'
+import { motion } from 'framer-motion'
+import { CheckCircleIcon } from '@heroicons/react/24/solid'
 
 const Checkout = () => {
     const router = useRouter()
     const { user } = useAuth()
     const { cart, clearCart, isLoading: cartLoading } = useCart()
     const [totalPrice, setTotalPrice] = useState(0)
+    const [showPaymentForm, setShowPaymentForm] = useState(false)
+    const [paymentId, setPaymentId] = useState(null)
+    const [paymentStatus, setPaymentStatus] = useState('pending') // 'pending', 'processing', 'success', 'failed'
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -40,7 +46,7 @@ const Checkout = () => {
     useEffect(() => {
         if (cart?.items && Array.isArray(cart.items)) {
             const total = cart.items.reduce(
-                (sum, item) => sum + item.product.price, // Remove quantity multiplication
+                (sum, item) => sum + (item.product.price * item.quantity),
                 0,
             )
             setTotalPrice(total)
@@ -53,233 +59,393 @@ const Checkout = () => {
             ...prev,
             [name]: value
         }))
-        setErrors(prev => ({
-            ...prev,
-            [name]: ''
-        }))
     }
 
     const validateForm = () => {
         const newErrors = {}
-
-        // Проверка ФИО
-        if (!formData.fullName.trim()) {
-            newErrors.fullName = 'ФИО обязательно для заполнения'
-        }
-
-        // Проверка email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!formData.email.trim()) {
-            newErrors.email = 'Email обязателен для заполнения'
-        } else if (!emailRegex.test(formData.email)) {
-            newErrors.email = 'Введите корректный email'
-        }
-
-        // Проверка телефона
-        const phoneRegex = /^\+7\d{10}$/
-        if (!formData.phone.trim()) {
-            newErrors.phone = 'Номер телефона обязателен для заполнения'
-        } else if (!phoneRegex.test(formData.phone)) {
-            newErrors.phone = 'Введите корректный номер телефона в формате +7XXXXXXXXXX'
-        }
-
-        // Проверка адреса
-        if (!formData.address.trim()) {
-            newErrors.address = 'Адрес обязателен для заполнения'
-        }
-
-        return newErrors
+        if (!formData.fullName) newErrors.fullName = 'Имя обязательно'
+        if (!formData.email) newErrors.email = 'Email обязателен'
+        if (!formData.phone) newErrors.phone = 'Телефон обязателен'
+        if (!formData.address) newErrors.address = 'Адрес обязателен'
+        
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        
+        if (!validateForm()) return
+        
+        // Show payment form instead of submitting order
+        setShowPaymentForm(true)
+    }
+
+    const handlePaymentSuccess = async (newPaymentId) => {
+        setPaymentId(newPaymentId)
+        setPaymentStatus('processing')
         setIsSubmitting(true)
-        setErrors({})
-        setSuccess('')
-
-        const validationErrors = validateForm()
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors)
-            setIsSubmitting(false)
-            return
-        }
-
+        
         try {
-            if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
-                throw new Error('Cart is empty')
-            }
-
-            const orderData = {
-                shipping_address: {
-                    fullName: formData.fullName,
-                    email: formData.email,
-                    phone: formData.phone,
-                    address: formData.address
-                },
+            // Now submit the order with payment information
+            const response = await axios.post('/api/orders', {
                 items: cart.items.map(item => ({
-                    product_id: Number(item.product.id),
-                    quantity: Number(item.quantity),
-                    price: Number(item.product.price)
-                }))
-            }
-
-            const response = await axios.post('/api/orders', orderData)
+                    product_id: item.product.id,
+                    quantity: item.quantity,
+                    price: item.product.price
+                })),
+                shipping_address: formData,
+                payment_id: newPaymentId,
+                paid: true
+            })
             
-            if (response.data.order) {
-                setSuccess('Заказ успешно оформлен!')
-                
-                try {
-                    await clearCart()
-                } catch (clearError) {
-                    console.error('Error clearing cart:', clearError)
-                }
-                
-                // Redirect to the order details page
-                router.push(`/dashboard/orders/order/${response.data.order.orderNumber}?success=true`)
-            } else {
-                throw new Error('Неверный формат ответа от сервера')
-            }
+            // Clear cart and set success status
+            await clearCart()
+            setPaymentStatus('success')
+            setSuccess('Заказ успешно оформлен!')
+            router.push(`/dashboard/orders/order/${response.data.order.orderNumber}?success=true`)
         } catch (error) {
             console.error('Error creating order:', error)
-            setErrors(prev => ({
-                ...prev,
-                submit: error.response?.data?.error || 'Произошла ошибка при оформлении заказа'
-            }))
+            setPaymentStatus('failed')
+            setErrors({ form: error.response?.data?.error || 'Ошибка при оформлении заказа' })
+            setShowPaymentForm(false)
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    if (cartLoading) return <Loader />
+    const handlePaymentCancel = () => {
+        setShowPaymentForm(false)
+        setPaymentStatus('pending')
+    }
 
-    if (!cart?.items || !Array.isArray(cart.items) || cart.items.length === 0) {
+    if (cartLoading) {
+        return <Loader />
+    }
+
+    if (!cart?.items || cart.items.length === 0) {
         return (
-            <div className="max-w-2xl mx-auto mt-10 p-6">
-                <p className="text-center text-gray-600">
-                    Ваша корзина пуста. Добавьте товары для оформления заказа.
-                </p>
-            </div>
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+            >
+                <div className="text-center">
+                    <motion.h2 
+                        initial={{ y: -20 }}
+                        animate={{ y: 0 }}
+                        className="text-2xl font-bold mb-4"
+                    >
+                        Ваша корзина пуста
+                    </motion.h2>
+                    <motion.p 
+                        initial={{ y: -10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="mb-4"
+                    >
+                        Добавьте товары в корзину, чтобы оформить заказ
+                    </motion.p>
+                    <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <Button onClick={() => router.push('/')}>
+                            Вернуться к покупкам
+                        </Button>
+                    </motion.div>
+                </div>
+            </motion.div>
         )
     }
 
+    // Payment status indicator component
+    const PaymentStatusIndicator = () => {
+        if (paymentStatus === 'pending') return null;
+        
+        const statusConfig = {
+            processing: {
+                text: 'Обработка платежа...',
+                bgColor: 'bg-blue-50',
+                textColor: 'text-blue-700',
+                icon: (
+                    <svg className="animate-spin h-5 w-5 mr-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                )
+            },
+            success: {
+                text: 'Платеж успешно обработан!',
+                bgColor: 'bg-green-50',
+                textColor: 'text-green-700',
+                icon: <CheckCircleIcon className="h-5 w-5 mr-3 text-green-600" />
+            },
+            failed: {
+                text: 'Ошибка при обработке платежа',
+                bgColor: 'bg-red-50',
+                textColor: 'text-red-700',
+                icon: (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                )
+            }
+        };
+        
+        const config = statusConfig[paymentStatus];
+        
+        return (
+            <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`mb-6 p-4 ${config.bgColor} rounded-md flex items-center`}
+            >
+                {config.icon}
+                <p className={config.textColor}>{config.text}</p>
+                {paymentStatus === 'success' && (
+                    <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.5, type: "spring" }}
+                        className="ml-auto"
+                    >
+                        <CheckCircleIcon className="h-8 w-8 text-green-500" />
+                    </motion.div>
+                )}
+            </motion.div>
+        );
+    };
+
     return (
-        <div className="py-12">
-            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div className="p-6 bg-white border-b border-gray-200">
-                        <h2 className="text-2xl font-bold mb-4">Оформление заказа</h2>
-                        {success && (
-                            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">
-                                {success}
-                            </div>
-                        )}
-                        {errors.submit && (
-                            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
-                                {errors.submit}
-                            </div>
-                        )}
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+        >
+            <motion.h1 
+                initial={{ y: -20 }}
+                animate={{ y: 0 }}
+                className="text-2xl font-bold mb-6"
+            >
+                Оформление заказа
+            </motion.h1>
+            
+            <PaymentStatusIndicator />
+            
+            {success && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 bg-green-50 rounded-md flex items-center"
+                >
+                    <CheckCircleIcon className="h-5 w-5 mr-3 text-green-600" />
+                    <p className="text-green-700">{success}</p>
+                </motion.div>
+            )}
+            
+            {errors.form && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 bg-red-50 rounded-md"
+                >
+                    <p className="text-red-700">{errors.form}</p>
+                </motion.div>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Shipping Information Form */}
+                {!showPaymentForm ? (
+                    <motion.div 
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-white p-6 rounded-lg shadow-md"
+                    >
+                        <h2 className="text-xl font-semibold mb-4">Информация о доставке</h2>
+                        
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="fullName">
                                     ФИО
                                 </label>
-                                <input
-                                    type="text"
+                                <motion.input
+                                    whileFocus={{ boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)" }}
+                                    id="fullName"
                                     name="fullName"
+                                    type="text"
                                     value={formData.fullName}
                                     onChange={handleChange}
-                                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
-                                        errors.fullName ? 'border-red-500' : ''
-                                    }`}
+                                    className={`w-full px-3 py-2 border rounded-md ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`}
                                 />
-                                {errors.fullName && (
-                                    <p className="mt-1 text-sm text-red-500">
-                                        {errors.fullName}
-                                    </p>
-                                )}
+                                {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                            
+                            <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
                                     Email
                                 </label>
-                                <input
-                                    type="email"
+                                <motion.input
+                                    whileFocus={{ boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)" }}
+                                    id="email"
                                     name="email"
+                                    type="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
-                                        errors.email ? 'border-red-500' : ''
-                                    }`}
+                                    className={`w-full px-3 py-2 border rounded-md ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
                                 />
-                                {errors.email && (
-                                    <p className="mt-1 text-sm text-red-500">
-                                        {errors.email}
-                                    </p>
-                                )}
+                                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                            
+                            <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
                                     Телефон
                                 </label>
-                                <input
-                                    type="tel"
+                                <motion.input
+                                    whileFocus={{ boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)" }}
+                                    id="phone"
                                     name="phone"
+                                    type="tel"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    placeholder="+7XXXXXXXXXX"
-                                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
-                                        errors.phone ? 'border-red-500' : ''
-                                    }`}
+                                    className={`w-full px-3 py-2 border rounded-md ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
                                 />
-                                {errors.phone && (
-                                    <p className="mt-1 text-sm text-red-500">
-                                        {errors.phone}
-                                    </p>
-                                )}
+                                {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                            
+                            <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="address">
                                     Адрес доставки
                                 </label>
-                                <textarea
+                                <motion.textarea
+                                    whileFocus={{ boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)" }}
+                                    id="address"
                                     name="address"
                                     value={formData.address}
                                     onChange={handleChange}
                                     rows="3"
-                                    className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
-                                        errors.address ? 'border-red-500' : ''
-                                    }`}
-                                />
-                                {errors.address && (
-                                    <p className="mt-1 text-sm text-red-500">
-                                        {errors.address}
-                                    </p>
-                                )}
+                                    className={`w-full px-3 py-2 border rounded-md ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                                ></motion.textarea>
+                                {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                             </div>
-
-                            <div className="flex justify-between items-center mt-6">
-                                <div>
-                                    <p className="text-lg font-semibold">
-                                        Итого к оплате: {totalPrice}₽
-                                    </p>
-                                </div>
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className={isSubmitting ? 'opacity-50' : ''}>
-                                    {isSubmitting
-                                        ? 'Оформление...'
-                                        : 'Оформить заказ'}
-                                </Button>
+                            
+                            <div className="mt-6">
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Button
+                                        type="submit"
+                                        className="bg-[#4438ca] hover:bg-[#19144d] rounded w-full text-center"
+                                        disabled={isSubmitting}
+                                    >
+                                        Перейти к оплате
+                                    </Button>
+                                </motion.div>
                             </div>
                         </form>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <CardPaymentForm 
+                            amount={totalPrice} 
+                            onPaymentSuccess={handlePaymentSuccess}
+                            onCancel={handlePaymentCancel}
+                        />
+                    </motion.div>
+                )}
+                
+                {/* Order Summary */}
+                <motion.div 
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-white p-6 rounded-lg shadow-md"
+                >
+                    <h2 className="text-xl font-semibold mb-4">Ваш заказ</h2>
+                    
+                    <div className="divide-y divide-gray-200">
+                        {cart.items.map((item, index) => (
+                            <motion.div 
+                                key={item.id} 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 * index }}
+                                className="py-4 flex justify-between"
+                            >
+                                <div>
+                                    <h3 className="text-sm font-medium">{item.product.name}</h3>
+                                    <p className="text-sm text-gray-500">
+                                        {item.quantity} x {item.product.price.toLocaleString('ru-RU')} ₽
+                                    </p>
+                                </div>
+                                <p className="text-sm font-medium">
+                                    {(item.product.price * item.quantity).toLocaleString('ru-RU')} ₽
+                                </p>
+                            </motion.div>
+                        ))}
                     </div>
-                </div>
+                    
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="mt-6 border-t border-gray-200 pt-4"
+                    >
+                        <div className="flex justify-between">
+                            <p className="text-sm font-medium">Итого</p>
+                            <motion.p 
+                                className="text-lg font-bold"
+                                initial={{ scale: 1 }}
+                                animate={{ scale: [1, 1.1, 1] }}
+                                transition={{ delay: 0.6, duration: 0.5 }}
+                            >
+                                {totalPrice.toLocaleString('ru-RU')} ₽
+                            </motion.p>
+                        </div>
+                    </motion.div>
+
+                    {/* Payment Status Display */}
+                    {paymentId && (
+                        <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            transition={{ delay: 0.3 }}
+                            className="mt-6 pt-4 border-t border-gray-200"
+                        >
+                            <h3 className="text-md font-semibold mb-2">Информация об оплате</h3>
+                            <div className="bg-gray-50 p-3 rounded-md">
+                                <div className="flex justify-between mb-2">
+                                    <span className="text-sm text-gray-600">ID платежа:</span>
+                                    <span className="text-sm font-medium">{paymentId}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-gray-600">Статус:</span>
+                                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                                        paymentStatus === 'success' ? 'bg-green-100 text-green-800' : 
+                                        paymentStatus === 'processing' ? 'bg-blue-100 text-blue-800' : 
+                                        paymentStatus === 'failed' ? 'bg-red-100 text-red-800' : 
+                                        'bg-gray-100 text-gray-800'
+                                    }`}>
+                                        {paymentStatus === 'success' ? 'Оплачен' : 
+                                         paymentStatus === 'processing' ? 'Обработка' : 
+                                         paymentStatus === 'failed' ? 'Ошибка' : 
+                                         'Ожидание'}
+                                    </span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </motion.div>
             </div>
-        </div>
+        </motion.div>
     )
 }
 

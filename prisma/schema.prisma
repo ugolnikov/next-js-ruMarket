@@ -60,6 +60,8 @@ model Order {
   address     String
   fullName    String        @map("full_name") @db.VarChar(255)
   totalAmount Decimal       @map("total_amount") @db.Decimal(10, 2)
+  payment_id  String?       @db.VarChar(255)
+  paid        Boolean?      @default(false)
   createdAt   DateTime?     @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime?     @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt @map("updated_at") @db.Timestamptz(6)
   items       OrderItem[]

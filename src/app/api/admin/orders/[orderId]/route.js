@@ -102,7 +102,7 @@ export async function PUT(request, { params }) {
         const data = await request.json()
         
         // Only allow updating certain fields
-        const { status, tracking_number, notes, payment_method, payment_status, shipping_method } = data
+        const { status, tracking_number, notes, payment_method, payment_status, shipping_method, paid } = data
         
         // Create update data object with only defined values
         const updateData = {}
@@ -112,6 +112,12 @@ export async function PUT(request, { params }) {
         if (payment_method) updateData.payment_method = payment_method
         if (payment_status) updateData.payment_status = payment_status
         if (shipping_method) updateData.shipping_method = shipping_method
+        
+        // Ensure paid is a boolean if it's defined
+        if (paid !== undefined) {
+            // Convert to boolean explicitly
+            updateData.paid = paid === true || paid === 'true'
+        }
 
         const order = await prisma.order.update({
             where: { id: BigInt(orderId) },

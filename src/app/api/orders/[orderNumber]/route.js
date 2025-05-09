@@ -14,6 +14,8 @@ const serializeOrder = (order) => {
         id: Number(order.id),
         userId: order.userId ? Number(order.userId) : null,
         totalAmount: Number(order.totalAmount),
+        payment_id: order.payment_id || null,
+        paid: order.paid || false,
         createdAt: order.createdAt ? new Date(order.createdAt).toISOString() : null,
         updatedAt: order.updatedAt ? new Date(order.updatedAt).toISOString() : null,
         items: order.items.map(item => ({

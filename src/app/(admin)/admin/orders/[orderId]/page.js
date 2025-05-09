@@ -15,6 +15,7 @@ const OrderDetails = () => {
     const [isEditing, setIsEditing] = useState(false)
     const [formData, setFormData] = useState({})
 
+    // In the OrderDetails component, update the formData state to include payment information
     useEffect(() => {
         if (params.orderId) {
             fetchOrder(params.orderId)
@@ -29,15 +30,11 @@ const OrderDetails = () => {
             setOrder(response.data)
             setFormData({
                 status: response.data.status,
-                tracking_number: response.data.tracking_number || '',
-                notes: response.data.notes || '',
-                payment_method: response.data.payment_method || 'not_specified',
-                payment_status: response.data.payment_status || 'not_specified',
-                shipping_method: response.data.shipping_method || 'not_specified'
+                payment_id: response.data.payment_id || '',
+                paid: response.data.paid || false
             })
         } catch (err) {
-            console.error('Error fetching order:', err)
-            setError('Не удалось загрузить данные заказа')
+            setError(err.response?.data?.error || 'Ошибка при загрузке заказа')
         } finally {
             setIsLoading(false)
         }
@@ -45,15 +42,31 @@ const OrderDetails = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }))
+        
+        // Convert string boolean values to actual booleans for the paid field
+        if (name === 'paid') {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value === 'true' // Convert to actual boolean
+            }))
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }))
+        }
     }
 
     const handleSave = async () => {
         try {
-            const response = await axios.put(`/api/admin/orders/${params.orderId}`, formData)
+            // Create a copy of formData with proper type conversion
+            const dataToSend = {
+                ...formData,
+                // Ensure paid is a boolean, not a string
+                paid: formData.paid === true || formData.paid === 'true'
+            }
+            
+            const response = await axios.put(`/api/admin/orders/${params.orderId}`, dataToSend)
             setOrder(response.data)
             setIsEditing(false)
         } catch (err) {
@@ -206,62 +219,26 @@ const OrderDetails = () => {
                     <div className="space-y-3">
                         <div>
                             <p className="text-sm text-gray-500">Способ оплаты</p>
-                            {isEditing ? (
-                                <select
-                                    name="payment_method"
-                                    value={formData.payment_method}
-                                    onChange={handleChange}
-                                    className="mt-1 w-full px-3 py-2 border rounded-lg"
-                                >
-                                    <option value="not_specified">Не указан</option>
-                                    <option value="card">Банковская карта</option>
-                                    <option value="cash">Наличные при получении</option>
-                                    <option value="bank_transfer">Банковский перевод</option>
-                                </select>
-                            ) : (
-                                <p className="font-medium">{getPaymentMethodText(order.payment_method || 'not_specified')}</p>
-                            )}
+                                <p className="font-medium">{getPaymentMethodText(order.payment_method || 'Банковская карта')}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Статус оплаты</p>
                             {isEditing ? (
                                 <select
-                                    name="payment_status"
-                                    value={formData.payment_status}
+                                    name="paid"
+                                    value={formData.paid}
                                     onChange={handleChange}
                                     className="mt-1 w-full px-3 py-2 border rounded-lg"
                                 >
-                                    <option value="not_specified">Не указан</option>
-                                    <option value="pending">Ожидает оплаты</option>
-                                    <option value="paid">Оплачен</option>
-                                    <option value="failed">Ошибка оплаты</option>
-                                    <option value="refunded">Возврат средств</option>
+                                    <option value="true">Оплачен</option>
+                                    <option value="false">Не оплачен</option>
                                 </select>
                             ) : (
                                 <p className="font-medium">
-                                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${getPaymentStatusColor(order.payment_status || 'not_specified')}`}>
-                                        {getPaymentStatusText(order.payment_status || 'not_specified')}
+                                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${getPaymentStatusColor(order.paid || 'not_specified')}`}>
+                                        {getPaymentStatusText(order.paid)}
                                     </span>
                                 </p>
-                            )}
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Способ доставки</p>
-                            {isEditing ? (
-                                <select
-                                    name="shipping_method"
-                                    value={formData.shipping_method}
-                                    onChange={handleChange}
-                                    className="mt-1 w-full px-3 py-2 border rounded-lg"
-                                >
-                                    <option value="not_specified">Не указан</option>
-                                    <option value="courier">Курьерская доставка</option>
-                                    <option value="pickup">Самовывоз</option>
-                                    <option value="post">Почта России</option>
-                                    <option value="express">Экспресс-доставка</option>
-                                </select>
-                            ) : (
-                                <p className="font-medium">{getShippingMethodText(order.shipping_method || 'not_specified')}</p>
                             )}
                         </div>
                     </div>
@@ -378,31 +355,22 @@ const getPaymentMethodText = (method) => {
 
 const getPaymentStatusText = (status) => {
     switch (status) {
-        case 'paid':
+        case true:
             return 'Оплачен'
-        case 'pending':
-            return 'Ожидает оплаты'
-        case 'failed':
-            return 'Ошибка оплаты'
-        case 'refunded':
-            return 'Возврат средств'
+        case false:
+            return 'Не оплачен'
         default:
             return status || 'Не указан'
     }
 }
-
 const getPaymentStatusColor = (status) => {
     switch (status) {
-        case 'paid':
-            return 'bg-green-100 text-green-800'
-        case 'pending':
-            return 'bg-yellow-100 text-yellow-800'
-        case 'failed':
+        case false:
             return 'bg-red-100 text-red-800'
-        case 'refunded':
-            return 'bg-blue-100 text-blue-800'
+        case true:
+            return 'bg-green-100 text-green-800'
         default:
-            return 'bg-gray-100 text-gray-800'
+            return 'bg-red-100 text-red-800'
     }
 }
 

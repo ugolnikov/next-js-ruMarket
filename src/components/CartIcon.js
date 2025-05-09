@@ -42,7 +42,7 @@ const CartIcon = () => {
                         exit={{ opacity: 0, y: 10 }}
                         className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg z-50"
                     >
-                        <div className="py-2 max-h-96 overflow-auto">
+                        <div className="py-2 max-h-96 overflow-hidden">
                             {cart.items.map(item => (
                                 <Link
                                     key={item.id}

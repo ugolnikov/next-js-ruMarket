@@ -130,65 +130,49 @@ export const db = {
   },
 
   async createOrder(userId, orderData) {
-    const { items, shipping_address } = orderData
-
-    // Calculate total amount and convert to Decimal
-    const totalAmount = items.reduce((sum, item) => {
-      return sum + (Number(item.price) * Number(item.quantity))
-    }, 0)
-
-    // Generate a unique order number: ORD-YYYYMMDD-XXXX
-    const date = new Date()
-    const dateStr = date.getFullYear().toString() +
-                   (date.getMonth() + 1).toString().padStart(2, '0') +
-                   date.getDate().toString().padStart(2, '0')
-    
-    // Get the latest order number for today to increment
-    const latestOrder = await prisma.order.findFirst({
-      where: {
-        orderNumber: {
-          startsWith: `ORD-${dateStr}`
-        }
-      },
-      orderBy: {
-        orderNumber: 'desc'
-      }
-    })
-
-    let sequence = 1
-    if (latestOrder) {
-      const lastSequence = parseInt(latestOrder.orderNumber.split('-')[2])
-      sequence = lastSequence + 1
-    }
-
-    const orderNumber = `ORD-${dateStr}-${sequence.toString().padStart(4, '0')}`
-
-    return await prisma.order.create({
-      data: {
-        userId: BigInt(userId),
-        orderNumber,
-        status: 'pending',
-        email: shipping_address.email,
-        phone: shipping_address.phone,
-        address: shipping_address.address,
-        fullName: shipping_address.fullName,
-        totalAmount: totalAmount.toFixed(2),
-        items: {
-          create: items.map(item => ({
-            productId: BigInt(item.product_id),
-            quantity: Number(item.quantity),
-            price: Number(item.price).toFixed(2)
-          }))
-        }
-      },
-      include: {
-        items: {
+      const { items, shipping_address, payment_id, paid } = orderData
+      
+      // Calculate total amount
+      const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      
+      // Generate order number
+      const timestamp = Date.now()
+      const randomNum = Math.floor(Math.random() * 1000)
+      const orderNumber = `ORD-${timestamp}-${randomNum}`
+      
+      // Create order
+      const order = await prisma.order.create({
+          data: {
+              orderNumber,
+              user: {
+                  connect: { id: BigInt(userId) }
+              },
+              status: 'pending',
+              email: shipping_address.email,
+              phone: shipping_address.phone,
+              address: shipping_address.address,
+              fullName: shipping_address.fullName,
+              totalAmount,
+              payment_id: payment_id || null,
+              paid: paid || false,
+              items: {
+                  create: items.map(item => ({
+                      productId: BigInt(item.product_id),
+                      quantity: item.quantity,
+                      price: item.price
+                  }))
+              }
+          },
           include: {
-            product: true
+              items: {
+                  include: {
+                      product: true
+                  }
+              }
           }
-        }
-      }
-    })
+      })
+      
+      return order
   },
 
   async updateOrderStatus(id, status) {

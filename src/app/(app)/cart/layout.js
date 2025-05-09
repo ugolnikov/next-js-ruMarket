@@ -3,9 +3,9 @@ import { useAuth } from '@/hooks/auth'
 import Loader from '@/components/Loader'
 
 const CartLayout = ({ children }) => {
-    const { user, isLoading } = useAuth({ middleware: 'auth' })
+    const { user, status } = useAuth({ middleware: 'auth' })
 
-    if (isLoading) {
+    if (status === 'loading') {
         return <Loader />
     }
 
