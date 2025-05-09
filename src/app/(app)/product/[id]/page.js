@@ -6,8 +6,8 @@ import Loader from '@/components/Loader'
 import axios from '@/lib/axios'
 import ImageFallback from '@/components/ImageFallback'
 import { useCart } from '@/hooks/cart'
-import Button from '@/components/Button'
 import FavoriteButton from '@/components/FavoriteButton'
+import AddToCartButton from '@/components/AddToCartButton'
 
 const loadProduct = async (id) => {
     try {
@@ -29,26 +29,9 @@ export default function Page({ params }) {
     const [isLoading, setIsLoading] = useState(true)
     const [isError, setIsError] = useState(false)
     const [notFound, setNotFound] = useState(false)
-    const [addingToCart, setAddingToCart] = useState(false)
-    const [addToCartError, setAddToCartError] = useState(null)
-    const [addToCartSuccess, setAddToCartSuccess] = useState(false)
     
     const resolvedParams = use(params)
     const id = resolvedParams.id
-
-    const handleAddToCart = async () => {
-        setAddingToCart(true)
-        setAddToCartError(null)
-        try {
-            await addToCart(product.id, 1)
-            setAddToCartSuccess(true)
-            setTimeout(() => setAddToCartSuccess(false), 2000)
-        } catch (error) {
-            setAddToCartError('Ошибка при добавлении в корзину')
-        } finally {
-            setAddingToCart(false)
-        }
-    }
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -58,6 +41,7 @@ export default function Page({ params }) {
                 setIsError(false)
                 setNotFound(false)
                 const response = await loadProduct(id)
+                console.log(response)
                 if (!response) {
                     setNotFound(true)
                 } else {
@@ -88,8 +72,23 @@ export default function Page({ params }) {
     if (isError) return <p>Ошибка загрузки товара</p>
     if (!product) return <p>Товар не найден</p>
     
-    const imageUrl = product.image_preview ? product.image_preview.replace(/^\/+/, '') : '/images/placeholder.jpg'
-    const sellerLogo = product.seller?.logo ? product.seller.logo.replace(/^\/+/, '') : '/images/default-avatar.png'
+    // Fix image URL formatting
+    const imageUrl = product.image_preview 
+        ? (product.image_preview.startsWith('http') 
+            ? product.image_preview 
+            : product.image_preview.startsWith('/') 
+                ? product.image_preview 
+                : `/${product.image_preview}`)
+        : '/images/placeholder.jpg'
+    
+    // Fix seller logo URL formatting
+    const sellerLogo = product.seller?.logo 
+        ? (product.seller.logo.startsWith('http') 
+            ? product.seller.logo 
+            : product.seller.logo.startsWith('/') 
+                ? product.seller.logo 
+                : `/${product.seller.logo}`)
+        : '/images/default-avatar.png'
     
     const parsed_description = product.full_description?.split("\n") || []
     return (
@@ -130,24 +129,8 @@ export default function Page({ params }) {
                                 </span>
                             </div>
                             {user?.role === 'customer' && (
-                            <div className="mt-6">
-                                <Button
-                                    onClick={handleAddToCart}
-                                    disabled={addingToCart}
-                                    className={`w-full py-3 rounded ${
-                                        addToCartSuccess
-                                            ? 'bg-green-500 hover:bg-green-600'
-                                            : 'bg-indigo-600 hover:bg-indigo-700'
-                                    } transition-colors duration-300`}>
-                                    {addingToCart
-                                        ? 'Добавление...'
-                                        : addToCartSuccess
-                                        ? 'Добавлено в корзину!'
-                                        : 'Добавить в корзину'}
-                                </Button>
-                                {addToCartError && (
-                                    <p className="text-red-500 text-sm mt-2">{addToCartError}</p>
-                                )}
+                            <div className="my-6">
+                                <AddToCartButton productId={product.id} />
                             </div>
                         )}
                             {/* Updated Seller Information Section */}

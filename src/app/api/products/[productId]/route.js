@@ -50,9 +50,9 @@ export async function GET(request) {
         }
 
         // Ensure image path starts with /
-        if (serializedProduct.image_preview && !serializedProduct.image_preview.startsWith('/')) {
-            serializedProduct.image_preview = `/${serializedProduct.image_preview}`
-        }
+        // if (serializedProduct.image_preview && !serializedProduct.image_preview.startsWith('/')) {
+        //     serializedProduct.image_preview = `/${serializedProduct.image_preview}`
+        // }
 
         return NextResponse.json(serializedProduct)
     } catch (error) {
