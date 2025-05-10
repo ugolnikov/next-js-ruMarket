@@ -69,7 +69,12 @@ export const { auth, handlers: { GET, POST }, signIn, signOut } = NextAuth({
                     company_name: user.company_name,
                     logo: user.logo, 
                     inn: user.inn, 
-                    address: user.address
+                    address: user.address,
+                    seller_type: user.seller_type,
+                    verification_status: user.verification_status,
+                    verification_rejection_reason: user.verification_rejection_reason,
+                    verification_approved_at: user.verification_approved_at,
+                    passport_number: user.passport_number,
                 }
             }
             return session

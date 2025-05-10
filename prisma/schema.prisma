@@ -8,24 +8,35 @@ datasource db {
 }
 
 model User {
-  id           BigInt       @id @default(autoincrement())
-  email        String       @unique @db.VarChar(255)
-  password     String       @db.VarChar(255)
-  name         String?      @db.VarChar(255)
-  role         user_role?   @default(customer)
-  phone        String?      @db.VarChar(255)
-  company_name String?      @db.VarChar(255)
-  inn          String?      @unique @db.VarChar(255)
-  address      String?
-  logo         String?      @db.VarChar(255)
-  is_verify    Boolean?     @default(false)
-  createdAt    DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  is_admin     Boolean?     @default(false)
-  cart_items   cart_items[]
-  favorites    favorites[]
-  orders       Order[]
-  products     Product[]
+  id                        BigInt       @id @default(autoincrement())
+  email                     String       @unique @db.VarChar(255)
+  password                  String       @db.VarChar(255)
+  name                      String?      @db.VarChar(255)
+  role                      user_role?   @default(customer)
+  phone                     String?      @db.VarChar(255)
+  company_name              String?      @db.VarChar(255)
+  inn                       String?      @unique @db.VarChar(255)
+  address                   String?
+  logo                      String?      @db.VarChar(255)
+  is_verify                 Boolean?     @default(false)
+  // New fields for verification
+  seller_type               String?      // 'company' or 'individual'
+  verification_status       String?      // 'pending', 'approved', 'rejected'
+  verification_documents    String[]     // Array of document URLs
+  verification_requested_at DateTime?
+  verification_approved_at  DateTime?
+  verification_rejected_at  DateTime?
+  verification_rejection_reason String?
+  passport_number           String?
+  passport_issued_by        String?
+  passport_issue_date       DateTime?
+  createdAt                 DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime?    @default(dbgenerated("timezone('utc'::text, now())")) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  is_admin                  Boolean?     @default(false)
+  cart_items                cart_items[]
+  favorites                 favorites[]
+  orders                    Order[]
+  products                  Product[]
 
   @@map("users")
 }

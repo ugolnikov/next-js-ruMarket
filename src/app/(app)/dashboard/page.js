@@ -15,6 +15,7 @@ import { PlusIcon, XMarkIcon } from '@heroicons/react/24/solid' // Add heroicons
 
 const Dashboard = () => {
     const { user, mutate, isLoading, updatePhone } = useAuth()
+    console.log(user)
     const { orders, isLoading: ordersLoading } = useOrders()
     const router = useRouter()
     const [searchTerm, setSearchTerm] = useState('')
@@ -37,7 +38,7 @@ const Dashboard = () => {
                 return;
             }
 
-            const filtered = ordersData.filter(order => 
+            const filtered = ordersData.filter(order =>
                 order.orderNumber.toLowerCase().includes(term.toLowerCase()) ||
                 order.totalAmount.toString().includes(term)
             );
@@ -75,7 +76,7 @@ const Dashboard = () => {
                 return 'bg-gray-100 text-gray-800'
         }
     }
-    
+
     const getStatusText = (status) => {
         switch (status) {
             case 'pending':
@@ -127,16 +128,33 @@ const Dashboard = () => {
         try {
             // Determine the new role based on current role
             const newRole = user.role === 'customer' ? 'seller' : 'customer';
-            
-            const response = await axios.put(`api/dashboard/${user.id}`, {
-                role: newRole
-            });
-      
-            if (response.data.signOut) {
-                signOut({ callbackUrl: '/login' }); 
+
+            if (newRole === 'seller') {
+                // Check if user was previously approved as a seller
+                if (user.verification_status === 'approved') {
+                    // If already approved before, directly change role without verification
+                    const response = await axios.put(`/api/dashboard/${user.id}`, {
+                        role: newRole
+                    });
+                    
+                    mutate();
+                } else {
+                    // Redirect to verification page if not previously approved
+                    router.push('/dashboard/verification');
+                }
+                return;
+            } else {
+                // If changing back to customer, make the API call
+                const response = await axios.put(`/api/dashboard/${user.id}`, {
+                    role: newRole
+                });
+
+                if (response.data.signOut) {
+                    signOut({ callbackUrl: '/login' });
+                }
+
+                mutate();
             }
-      
-            mutate();  
         } catch (error) {
             console.error('Error changing role:', error);
         }
@@ -150,20 +168,20 @@ const Dashboard = () => {
         try {
             const formData = new FormData()
             formData.append('file', file)
-            
+
             // First upload the file to get the URL
             const uploadRes = await axios.post('/api/upload', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             })
-            
+
             if (uploadRes.data?.url) {
                 // Then update the user profile with the logo URL
                 await axios.put('/api/user/profile', {
                     logo: uploadRes.data.url
                 })
-                
+
                 // Refresh user data
                 mutate()
             }
@@ -186,7 +204,14 @@ const Dashboard = () => {
             setLogoUploading(false)
         }
     }
-    
+
+    const date = new Date(user?.verification_approved_at)
+    const verif_date = date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      });
+
     if (!user || ordersLoading) return <Loader />
     return (
         <>
@@ -255,10 +280,10 @@ const Dashboard = () => {
                             </div>
 
                             <p className="flex mt-4 text-lg text-gray-700 items-center flex-col sm:flex-row">
-                                Роль: 
+                                Роль:
                                 {user?.role === 'seller' ? (
                                     <>
-                                        <span className="text-[#4438ca]">
+                                        <span className="text-[#4438ca] ms-2 me-2">
                                             {'  '}Продавец -{'  '}
                                         </span>
                                         <Button
@@ -271,18 +296,22 @@ const Dashboard = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <span className="text-[#4438ca]">
+                                        <span className="text-[#4438ca] ms-2 me-2">
                                             {'  '}Покупатель -{'  '}
                                         </span>
-                                        <Button
-                                            className="text-sm rounded sm:!p-1"
-                                            onClick={() =>
-                                                changeRole({
-                                                    url: '/api/change_role/seller',
-                                                })
-                                            }>
-                                            Стать продавцом
-                                        </Button>
+                                        {user?.verification_status == "pending" ? (
+                                            <span>Вы подали заявку на верификацию как продавца</span>
+                                        ) : (
+                                            <Button
+                                                className="text-sm rounded sm:!p-1"
+                                                onClick={() =>
+                                                    changeRole({
+                                                        url: '/api/change_role/seller',
+                                                    })
+                                                }>
+                                                Стать продавцом
+                                            </Button>)}
+
                                     </>
                                 )}
                             </p>
@@ -322,7 +351,7 @@ const Dashboard = () => {
                                                             </svg>
                                                         </div>
                                                     )}
-                                                    
+
                                                     {/* Only show overlay when hovering OR when there's no logo */}
                                                     {(logoHover || !user?.logo) && (
                                                         <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center rounded-lg">
@@ -335,7 +364,7 @@ const Dashboard = () => {
                                                             >
                                                                 <PlusIcon className="w-5 h-5" />
                                                             </button>
-                                                            
+
                                                             {user?.logo && (
                                                                 <button
                                                                     type="button"
@@ -349,7 +378,7 @@ const Dashboard = () => {
                                                             )}
                                                         </div>
                                                     )}
-                                                    
+
                                                     <input
                                                         type="file"
                                                         accept="image/*"
@@ -358,7 +387,7 @@ const Dashboard = () => {
                                                         onChange={handleLogoChange}
                                                         disabled={logoUploading}
                                                     />
-                                                    
+
                                                     {logoUploading && (
                                                         <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 rounded-lg">
                                                             <Loader />
@@ -368,52 +397,56 @@ const Dashboard = () => {
                                             </div>
                                             <div className="absolute bottom-4 left-40">
                                                 <h3 className="text-xl sm:text-2xl font-bold text-white">
-                                                    {user?.company_name ||
-                                                        'Название компании не указано'}
+                                                    {user?.seller_type == 'individual' ? 
+                                                    (user?.name) : 
+                                                    (
+                                                        user?.company_name ||
+                                                        'Название компании не указано'
+                                                        )
+                                                        }
+                                                        
                                                 </h3>
                                             </div>
                                         </div>
                                         {/* Основная информация */}
                                         <div className="pt-16 pb-8 px-4 sm:px-8">
-                                        <div className="m-4 flex justify-center space-x-2 mb-4 sm:hidden">
-                                                        <button
-                                                            type="button"
-                                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
-                                                            onClick={() => fileInputRef.current.click()}
-                                                            disabled={logoUploading}
-                                                        >
-                                                            <PlusIcon className="w-4 h-4 mr-1" />
-                                                            Загрузить логотип
-                                                        </button>
-                                                        
-                                                        {user?.logo && (
-                                                            <button
-                                                                type="button"
-                                                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
-                                                                onClick={handleRemoveLogo}
-                                                                disabled={logoUploading}
-                                                            >
-                                                                <XMarkIcon className="w-4 h-4 mr-1" />
-                                                                Удалить логотип
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                            <div className="m-4 flex justify-center space-x-2 mb-4 sm:hidden">
+                                                <button
+                                                    type="button"
+                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                                                    onClick={() => fileInputRef.current.click()}
+                                                    disabled={logoUploading}
+                                                >
+                                                    <PlusIcon className="w-4 h-4 mr-1" />
+                                                    Загрузить логотип
+                                                </button>
+
+                                                {user?.logo && (
+                                                    <button
+                                                        type="button"
+                                                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                                                        onClick={handleRemoveLogo}
+                                                        disabled={logoUploading}
+                                                    >
+                                                        <XMarkIcon className="w-4 h-4 mr-1" />
+                                                        Удалить логотип
+                                                    </button>
+                                                )}
+                                            </div>
                                             <div className="flex-col flex sm:grid sm:grid-cols-1 md:grid-cols-2  sm:gap-0 md:gap-8">
-                                                
+
                                                 {/* Статус верификации */}
                                                 <div className="col-span-2 flex flex-col align-items-center justify-center sm:flex-row mb-4 sm:mb-0 w-full items-center sm:justify-evenly">
                                                     <div
-                                                        className={`inline-flex items-center px-4 py-2 rounded-full mb-2 sm:mb-0 ${
-                                                            user?.is_verify
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : 'bg-yellow-100 text-yellow-800'
-                                                        }`}>
+                                                        className={`inline-flex items-center px-4 py-2 rounded-full mb-2 sm:mb-0 ${user?.is_verify
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : 'bg-yellow-100 text-yellow-800'
+                                                            }`}>
                                                         <svg
-                                                            className={`w-5 h-5 mr-2 ${
-                                                                user?.is_verify
-                                                                    ? 'text-green-500'
-                                                                    : 'text-yellow-500'
-                                                            }`}
+                                                            className={`w-5 h-5 mr-2 ${user?.is_verify
+                                                                ? 'text-green-500'
+                                                                : 'text-yellow-500'
+                                                                }`}
                                                             fill="currentColor"
                                                             viewBox="0 0 20 20">
                                                             {user?.is_verify ? (
@@ -453,11 +486,11 @@ const Dashboard = () => {
                                                 <div className="space-y-1 sm:space-y-4 flex-col">
                                                     <div>
                                                         <h4 className="text-sm font-medium text-gray-500">
-                                                            ИНН
+                                                            {user?.seller_type == 'individual' ? ('Паспорт') : ('ИНН')}
+                                                            
                                                         </h4>
                                                         <p className="mt-1 text-lg font-medium">
-                                                            {user?.inn ||
-                                                                'Не указан'}
+                                                            {user?.seller_type == 'individual'? (user?.passport_number || 'Не указан') : (user?.inn || 'Не указан')}
                                                         </p>
                                                     </div>
                                                     <div>
@@ -475,11 +508,10 @@ const Dashboard = () => {
                                                 <div className="space-y-1 sm:space-y-4">
                                                     <div>
                                                         <h4 className="text-sm font-medium text-gray-500">
-                                                            Адрес
+                                                        {user?.seller_type == 'individual' ? ('Дата становления продавцом') : ('Адрес')}
                                                         </h4>
                                                         <p className="mt-1 text-lg font-medium">
-                                                            {user?.address ||
-                                                                'Не указан'}
+                                                            {user?.seller_type == 'individual'? (verif_date) : (user?.address || 'Не указан')}
                                                         </p>
                                                     </div>
                                                     <div>
@@ -501,78 +533,98 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {user?.role === 'customer' ? (
-                <div className="pb-6 sm:pb-12">
-                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                            <div className="p-6 bg-white border-b border-gray-200">
-                                <div className="flex justify-between items-center mb-6 flex-col gap-4 sm:flex-row">
+            {user?.verification_status == "pending" ? (
+                <>
+                    <div className="pb-6 sm:pb-12">
+                        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                <div className="p-6 bg-white border-b border-gray-200">
                                     <h2 className="text-3xl font-bold text-[#4438ca]">
-                                        Ваши заказы:
+                                        Ваша заявка на расмотрении
                                     </h2>
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            value={searchTerm}
-                                            onChange={handleSearchChange}
-                                            placeholder="Поиск заказов..."
-                                            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4438ca] focus:border-transparent"
-                                        />
-                                    </div>
+                                    <p className="text-gray-600">
+                                        Мы рассмотрим вашу заявку и свяжемся с вами в ближайшее время.</p>
                                 </div>
-                                
-                                <div className="mt-4 overflow-x-auto">
-                                    {filteredOrders && filteredOrders.length > 0 ? (
-                                        <div className="space-y-4">
-                                            {filteredOrders.map(order => (
-                                                <div
-                                                    key={order.id}
-                                                    className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <span className="font-medium">
-                                                            Заказ #{order.orderNumber}
-                                                        </span>
-                                                        <span
-                                                            className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
-                                                                order.status,
-                                                            )}`}>
-                                                            {getStatusText(order.status)}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">
-                                                        <p>Сумма: {order.totalAmount} ₽</p>
-                                                        <p>
-                                                            Дата:{' '}
-                                                            {new Date(
-                                                                order.createdAt,
-                                                            ).toLocaleDateString()}
-                                                        </p>
-                                                    </div>
-                                                    <Link
-                                                        href={`/dashboard/orders/order/${order.orderNumber}`}
-                                                        className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block">
-                                                        Подробнее
-                                                    </Link>
-                                                </div>
-                                            ))}
+                                </div>
+                                </div></div>
+
+                    </>
+                    ) : (null)
+                    }
+
+
+                    {user?.role === 'customer' ? (
+                        <div className="pb-6 sm:pb-12">
+                            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                                <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                                    <div className="p-6 bg-white border-b border-gray-200">
+                                        <div className="flex justify-between items-center mb-6 flex-col gap-4 sm:flex-row">
+                                            <h2 className="text-3xl font-bold text-[#4438ca]">
+                                                Ваши заказы:
+                                            </h2>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={searchTerm}
+                                                    onChange={handleSearchChange}
+                                                    placeholder="Поиск заказов..."
+                                                    className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#4438ca] focus:border-transparent"
+                                                />
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <p className="text-gray-700 text-center mt-6">
-                                            {searchTerm 
-                                                ? "Заказы не найдены" 
-                                                : "Заказы отсутствуют."}
-                                        </p>
-                                    )}
+
+                                        <div className="mt-4 overflow-x-auto">
+                                            {filteredOrders && filteredOrders.length > 0 ? (
+                                                <div className="space-y-4">
+                                                    {filteredOrders.map(order => (
+                                                        <div
+                                                            key={order.id}
+                                                            className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <span className="font-medium">
+                                                                    Заказ #{order.orderNumber}
+                                                                </span>
+                                                                <span
+                                                                    className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
+                                                                        order.status,
+                                                                    )}`}>
+                                                                    {getStatusText(order.status)}
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-sm text-gray-600">
+                                                                <p>Сумма: {order.totalAmount} ₽</p>
+                                                                <p>
+                                                                    Дата:{' '}
+                                                                    {new Date(
+                                                                        order.createdAt,
+                                                                    ).toLocaleDateString()}
+                                                                </p>
+                                                            </div>
+                                                            <Link
+                                                                href={`/dashboard/orders/order/${order.orderNumber}`}
+                                                                className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block">
+                                                                Подробнее
+                                                            </Link>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-700 text-center mt-6">
+                                                    {searchTerm
+                                                        ? "Заказы не найдены"
+                                                        : "Заказы отсутствуют."}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            ) : null}
-        </>
-    )
+                    ) : null}
+                </>
+            )
 }
 
 
-export default Dashboard
+            export default Dashboard
 
