@@ -18,6 +18,8 @@ const Checkout = () => {
     const [showPaymentForm, setShowPaymentForm] = useState(false)
     const [paymentId, setPaymentId] = useState(null)
     const [paymentStatus, setPaymentStatus] = useState('pending') // 'pending', 'processing', 'success', 'failed'
+    const [commissionPercent, setCommissionPercent] = useState(0)
+    const [commissionAmount, setCommissionAmount] = useState(0)
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -43,15 +45,28 @@ const Checkout = () => {
         }
     }, [user])
 
+    // Получаем комиссию маркетплейса
+    useEffect(() => {
+        async function fetchCommission() {
+            try {
+                const res = await axios.get('/api/admin/settings')
+                setCommissionPercent(Number(res.data.commission) || 0)
+            } catch {
+                setCommissionPercent(0)
+            }
+        }
+        fetchCommission()
+    }, [])
+
+    // Пересчитываем комиссию и итоговую сумму
     useEffect(() => {
         if (cart?.items && Array.isArray(cart.items)) {
-            const total = cart.items.reduce(
-                (sum, item) => sum + (item.product.price * item.quantity),
-                0,
-            )
-            setTotalPrice(total)
+            const subtotal = cart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
+            const commission = subtotal * (commissionPercent / 100)
+            setCommissionAmount(commission)
+            setTotalPrice(subtotal + commission)
         }
-    }, [cart])
+    }, [cart, commissionPercent])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -402,7 +417,15 @@ const Checkout = () => {
                         className="mt-6 border-t border-gray-200 pt-4"
                     >
                         <div className="flex justify-between">
-                            <p className="text-sm font-medium">Итого</p>
+                            <p className="text-sm">Промежуточный итог</p>
+                            <p className="text-sm">{(totalPrice - commissionAmount).toLocaleString('ru-RU')} ₽</p>
+                        </div>
+                        <div className="flex justify-between mt-1">
+                            <p className="text-sm">Комиссия маркетплейса ({commissionPercent}%)</p>
+                            <p className="text-sm">{commissionAmount.toLocaleString('ru-RU')} ₽</p>
+                        </div>
+                        <div className="flex justify-between mt-2 font-bold">
+                            <p className="text-lg">Итого к оплате</p>
                             <motion.p
                                 className="text-lg font-bold"
                                 initial={{ scale: 1 }}

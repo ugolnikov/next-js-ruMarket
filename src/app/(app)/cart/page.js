@@ -20,6 +20,8 @@ const CartPage = () => {
     const [loading, setLoading] = useState(false)
     const [totalPrice, setTotalPrice] = useState(0)
     const [removingItems, setRemovingItems] = useState([])
+    const [commissionPercent, setCommissionPercent] = useState(0)
+    const [commissionAmount, setCommissionAmount] = useState(0)
     
     const router = useRouter()
     
@@ -29,15 +31,30 @@ const CartPage = () => {
         }
     }, [user, router])
 
+    // Получаем комиссию маркетплейса
+    useEffect(() => {
+        async function fetchCommission() {
+            try {
+                const res = await axios.get('/api/admin/settings')
+                setCommissionPercent(Number(res.data.commission) || 0)
+            } catch {
+                setCommissionPercent(0)
+            }
+        }
+        fetchCommission()
+    }, [])
+
     useEffect(() => {
         if (cart?.items && Array.isArray(cart.items)) {
-            const total = cart.items.reduce(
+            const subtotal = cart.items.reduce(
                 (sum, item) => sum + item.product.price,
                 0,
             )
-            setTotalPrice(total)
+            const commission = subtotal * (commissionPercent / 100)
+            setCommissionAmount(commission)
+            setTotalPrice(subtotal + commission)
         }
-    }, [cart])
+    }, [cart, commissionPercent])
 
     const handleRemoveItem = async cartId => {
         setRemovingItems(prev => [...prev, cartId])
@@ -163,9 +180,10 @@ const CartPage = () => {
                                             src={firstImage}
                                             alt={item.product.name}
                                             fill
-                                            sizes='(100w) 100vw'
-                                            priority={true}
-                                            style={{ objectFit: 'cover' }}
+                                            sizes="(max-width: 768px) 96px, 96px"
+                                            loading="lazy"
+                                            placeholder="blur"
+                                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQtJSEkMjU1LS0yMi4qLjgyPj4+ODhAQEA4QEBAPj4+ODg4ODg4ODg4ODj/2wBDAR4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                                             className="object-cover rounded-lg shadow"
                                         />
                                     </motion.div>
@@ -273,7 +291,15 @@ const CartPage = () => {
                 >
                     
                     <div className="mb-4 md:mb-0">
-                        <p className="font-semibold text-gray-700">Итого:</p>
+                        <p className="font-semibold text-gray-700">Промежуточный итог:</p>
+                        <p className="text-gray-900">
+                            {(totalPrice - commissionAmount).toLocaleString('ru-RU')}₽
+                        </p>
+                        <p className="font-semibold text-gray-700 mt-2">Комиссия маркетплейса ({commissionPercent}%):</p>
+                        <p className="text-gray-900">
+                            {commissionAmount.toLocaleString('ru-RU')}₽
+                        </p>
+                        <p className="font-semibold text-gray-700 mt-2">Итого:</p>
                         <motion.p 
                             initial={{ scale: 1 }}
                             animate={{ scale: [1, 1.1, 1] }}

@@ -175,8 +175,7 @@ const UsersManagement = () => {
                                                 value={formData.company_name || ''}
                                                 onChange={handleChange}
                                                 className="w-full px-2 py-1 border rounded"
-                                            >
-                                            </input>
+                                            />
                                         ) : (
                                             user.company_name || '-'
                                         )}
