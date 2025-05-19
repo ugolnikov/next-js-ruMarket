@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react'
 import Loader from '@/components/Loader'
 import Button from '@/components/Button'
 import { useRouter } from 'next/navigation'
-import ImageWithLoader from '@/components/ImageWithLoader'
 import Modal from '@/components/Modal'
 import ImageFallback from './ImageFallback'
 
