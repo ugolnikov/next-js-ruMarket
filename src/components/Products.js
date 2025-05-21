@@ -113,8 +113,8 @@ const Products = () => {
                 </motion.div>
             </AnimatePresence>
             <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}>
                 {(() => {
                     if (currentPage === 1 && !searchQuery)
@@ -155,11 +155,19 @@ const Products = () => {
                 </motion.div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products?.data?.map(product => (
+                    {products?.data?.map((product, index) => (
                         <motion.div
                             key={product.id}
-                            initial={{ opacity: 1 }}
+                            initial={{ opacity: 0, y: 30 }}
                             exit={{ opacity: 0 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: '-50px' }}
+                            transition={{
+                                duration: 0.4,
+                                delay:
+                                    (index % 3) * 0.1 +
+                                    Math.floor(index / 3) * 0.1,
+                            }}
                             onClick={() => handleProductClick(product.id)}
                             className="relative">
                             <ProductCard product={product} />

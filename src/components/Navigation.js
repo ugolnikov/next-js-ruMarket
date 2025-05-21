@@ -40,9 +40,9 @@ const Navigation = ({ user }) => {
             <motion.nav
             // initial={{ y: -10, opacity: 0.5 }}
             // animate={{ y: 0, opacity: 1 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, ease: 'easeIn' }}
+            initial={{ opacity: 0, y:-20 }}
+            animate={{ opacity: 1, y:0 }}
+            transition={{ duration: 0.5, ease: 'easeIn' }}
             className="bg-white border-b border-gray-100"
             >
             {/* Primary Navigation Menu */}
