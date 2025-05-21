@@ -70,11 +70,16 @@ const AddToCartBtn = ({ productId }) => {
             <motion.div
                 whileTap={{ scale: 0.95 }}
                 whileHover={{ scale: 1.05 }}
+                style={{
+                    transformOrigin: 'center', 
+                    width: 'fit-content', 
+                }}
+                // className="mx-auto"
             >
                 <Button
                     onClick={handleClick}
                     disabled={loading}
-                    className={`rounded ${success ? 'bg-green-500 hover:bg-green-600' : isInCart ? 'bg-gray-500 hover:bg-gray-600' : ''} transition-all duration-300`}
+                    className={`rounded ${success ? 'bg-green-500 hover:bg-green-600' : isInCart ? 'bg-gray-500 hover:bg-gray-600' : ''} transition-all duration-300 px-6 py-3 addToCartBTN`}
                 >
                     <AnimatePresence mode="wait">
                         {loading ? (

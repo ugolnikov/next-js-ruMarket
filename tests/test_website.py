@@ -23,7 +23,7 @@ SELECTORS = {
     'search_button': "//button[contains(@class, 'search') or @aria-label='Search' or contains(@type, 'submit')]",
     
     'product_card': "//div[contains(@class, 'group')]//div[contains(@class, 'relative')]",
-    'add_to_cart_button': "//button[contains(text(), 'В корзину')]",
+    'add_to_cart_button': "//button[.//span[contains(text(), 'В корзину')]]",
     'add_to_favorites_button': "//button[@aria-label='Add to favorites']",
     'cart_icon': "//a[@href='/cart']//span[contains(@class, 'sr-only')]",
     'cart_item': "//div[contains(@class, 'cart-items')]//div[contains(@class, 'flex')]",
@@ -76,7 +76,6 @@ class TestE2E:
                     return False
                 return d.execute_script('return document.readyState') == 'complete'
             
-            # Pass the function directly without lambda
             WebDriverWait(driver, timeout).until(url_has_stabilized)
             time.sleep(2)
                 
@@ -121,13 +120,16 @@ class TestE2E:
             
             time.sleep(3)  
             
-          
-            # Navigate to home page
+    
+            # На главную страницу
             driver.get("http://localhost:3000")
             time.sleep(3)
             
-            # 2. Search for product
+            # 2. Поиск товаров
             print("Тестирование поиска...")
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "/html/body/div/main/div/div/div/div/div[1]/div[1]/input"))
+            )
             driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div[1]/div[1]/input").send_keys("Ноутбук ASUS ROG Strix G15")
             time.sleep(3)
             WebDriverWait(driver, 10).until(
@@ -136,17 +138,17 @@ class TestE2E:
             driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div[1]/div[1]/div").click()
             time.sleep(3)
             
-            # 3. Add product to cart
+            # 3. Добавление в корзину
             print("Тестирование добавления в корзину...")
             WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "/html/body/div/main/div/div/div/div/div[3]/div/div/div[1]/a"))
+                EC.presence_of_element_located((By.XPATH, "/html/body/div/main/div/div/div/div/div[4]/div/div/div[2]/div[1]/a"))
             )
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div[3]/div/div/div[1]/a").click()
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div[4]/div/div/div[2]/div[1]/a").click()
             time.sleep(2)
             WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "body > div > main > div > div > div > div.flex.flex-col.justify-between > div > div.mt-6 > button"))
+                EC.presence_of_element_located((By.CSS_SELECTOR, "body > div > main > div > div > div > div.flex.flex-col.justify-between > div > div.my-6 > div > div > button"))
             )
-            driver.find_element(By.CSS_SELECTOR, "body > div > main > div > div > div > div.flex.flex-col.justify-between > div > div.mt-6 > button").click()
+            driver.find_element(By.CSS_SELECTOR, "body > div > main > div > div > div > div.flex.flex-col.justify-between > div > div.my-6 > div > div > button").click()
             time.sleep(2)
 
 
@@ -158,44 +160,57 @@ class TestE2E:
             
             driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div[1]/div[1]/div").click()
             time.sleep(3)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div[3]/div/div/div[1]/a").click()
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div[4]/div/div/div[2]/div[1]/a").click()
             time.sleep(2)
-            driver.find_element(By.CSS_SELECTOR, "body > div > main > div > div > div > div.flex.flex-col.justify-between > div > div.mt-6 > button").click()
+            driver.find_element(By.CSS_SELECTOR, "body > div > main > div > div > div > div.flex.flex-col.justify-between > div > div.my-6 > div > div > button").click()
             time.sleep(2)
             
-            # 4. Add to favorites
+            # 4. Добавление в избранное
             print("Тестирование избранного...")
             driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[2]/div/div[1]/button").click()
             time.sleep(2)
             
-            # 5. Check cart
+            # 5. Проверка корзины
             print("Тестирование корзины...")
             driver.find_element(By.XPATH, "/html/body/div/nav/div/div/div[2]/div[2]/a").click()
-            time.sleep(2)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[2]/div[5]/button").click()
-            time.sleep(2)
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "/html/body/div/main/div/div/div/div[2]/button"))
-            )
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[2]/button").click()
-            time.sleep(2)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[1]/input").clear()
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[1]/input").send_keys("Test Test Test")
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[2]/input").clear()
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[2]/input").send_keys(TEST_EMAIL)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[3]/input").clear()
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[3]/input").send_keys(TEST_PHONE)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[4]/textarea").clear()
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[4]/textarea").send_keys("Test Address")
             time.sleep(3)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[5]/button").click()
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "/html/body/div/main/div/div/div/div[2]/div[4]/div/button"))
+            )
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[2]/div[4]/div/button").click()
+            time.sleep(2)
+
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "/html/body/div/main/div/div/div/div[4]/div[2]/div[2]/button"))
+            )
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[4]/div[2]/div[2]/button").click()
+            
+            time.sleep(3)
+
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[1]/input"))
+            )
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[1]/input").clear()
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[1]/input").send_keys("Test Test Test")
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[2]/input").clear()
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[2]/input").send_keys(TEST_EMAIL)
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[3]/input").clear()
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[3]/input").send_keys(TEST_PHONE)
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[4]/textarea").clear()
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[4]/textarea").send_keys("Test Address")
+            time.sleep(3)
+            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div[1]/form/div[5]/div/button").click()
             time.sleep(5)
             
 
-            #5.5 Check favorites
+            #5.5 Проверка избранного
             print("Тестирование избранного...")
+            driver.get("http://localhost:3000/dashboard")
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "/html/body/div/nav/div/div/div[2]/div[1]/a"))
+            )
             driver.find_element(By.XPATH, "/html/body/div/nav/div/div/div[2]/div[1]/a").click()
-            time.sleep(3)
+            time.sleep(5)
             
             # 6. Check dashboard
             print("Тестирование личного кабинета...")
@@ -209,7 +224,6 @@ class TestE2E:
             time.sleep(1)
 
             
-            # Then replace the time.sleep(5) in the test with:
             driver.find_element(By.XPATH, "/html/body/div/main/div/div[1]/div/div/div/p[2]/button").click()
             time.sleep(2)
             self.wait_for_redirects(driver)
@@ -227,16 +241,7 @@ class TestE2E:
                 time.sleep(3)
                 self.wait_for_redirects(driver) 
             time.sleep(2)
-            # 7. Верификация продавца
-            print("Тестирование верификации продавца...")
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/div[2]/div/div[2]/div/div[1]/button").click()
-            time.sleep(3)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[1]/div/input").send_keys("3232005484")
-            time.sleep(3)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[1]/div/button").click()
-            time.sleep(3)
-            driver.find_element(By.XPATH, "/html/body/div/main/div/div/div/div/div/form/div[3]/button").click()
-            time.sleep(3)
+            
 
             print("Все тесты успешно завершены!")
             

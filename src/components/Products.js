@@ -105,7 +105,7 @@ const Products = () => {
                         </motion.div>
                     </div>
                     <motion.div
-                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#4438ca] origin-left"
+                        className="w-[99%] flex items-center justify-center align-center content-center mx-auto absolute bottom-0 left-0 right-0 h-[2px] bg-[#4438ca] origin-left"
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: searchQuery ? 1 : 0 }}
                         transition={{ duration: 0.3 }}
@@ -183,7 +183,7 @@ const Products = () => {
                     ))}
                 </div>
             )}
-            {products?.meta && (
+            {products?.meta && products?.data?.length != 0 && (
                 <Pagination
                     currentPage={currentPage}
                     lastPage={products.meta.last_page}

@@ -105,8 +105,8 @@ export default function Page({ params }) {
                             fill
                             sizes='(100w) 100vw'
                             priority={true}
-                            style={{ objectFit: 'cover' }}
-                            className="rounded"
+                            // style={{ objectFit: 'cover' }}
+                            className="rounded object-scale-down md:object-cover"
                         />
                     </div>
                     <div className="flex flex-col justify-between">
@@ -137,7 +137,7 @@ export default function Page({ params }) {
                             <div className="border-t border-gray-200 pt-6 mb-6">
                                 <h2 className="text-xl font-semibold mb-4">Информация о продавце</h2>
                                 {product.seller ? (
-                                    <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-4 flex-col gap-5 sm:flex-row">
                                         <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-100">
                                             <ImageFallback
                                                 src={sellerLogo}
@@ -154,21 +154,21 @@ export default function Page({ params }) {
                                             <h3 className="font-medium text-lg">
                                                 {product.seller.company_name || product.seller.name}
                                             </h3>
-                                            <div className="text-gray-600 space-y-1 mt-2">
+                                            <div className="text-gray-600 space-y-3 mt-2">
                                                 {product.seller.address && (
-                                                    <p className="flex items-center">
+                                                    <p className="flex items-center flex-wrap">
                                                         <span className="w-20 font-medium">Адрес:</span>
                                                         <span>{product.seller.address}</span>
                                                     </p>
                                                 )}
                                                 {product.seller.phone && (
-                                                    <p className="flex items-center">
+                                                    <p className="flex items-center flex-wrap">
                                                         <span className="w-20 font-medium">Телефон:</span>
                                                         <span>{product.seller.phone}</span>
                                                     </p>
                                                 )}
                                                 {product.seller.email && (
-                                                    <p className="flex items-center">
+                                                    <p className="flex items-center flex-wrap">
                                                         <span className="w-20 font-medium">Email:</span>
                                                         <span>{product.seller.email}</span>
                                                     </p>
