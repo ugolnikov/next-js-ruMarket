@@ -112,3 +112,45 @@ export async function PUT(request, { params }) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
+export async function DELETE(request, { params }) {
+    try {
+        const session = await auth()
+        
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        // Проверяем, что пользователь является продавцом
+        if (session.user.role !== 'seller' && session.user.role !== 'admin') {
+            return NextResponse.json({ error: 'Forbidden: Only sellers can access this endpoint' }, { status: 403 })
+        }
+
+        const productId = params.productId
+        
+        if (!productId) {
+            return NextResponse.json({ error: 'Product ID is required' }, { status: 400 })
+        }
+
+        // Проверяем, что товар принадлежит продавцу
+        const product = await prisma.product.findFirst({
+            where: { 
+                id: BigInt(productId),
+                seller_id: BigInt(session.user.id)
+            }
+        })
+
+        if (!product) {
+            return NextResponse.json({ error: 'Product not found or you do not have permission to delete it' }, { status: 404 })
+        }
+        
+        // Удаляем товар
+        await prisma.product.delete({
+            where: { id: BigInt(productId) }
+        })
+        
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error('Error deleting product:', error)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}

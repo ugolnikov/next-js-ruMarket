@@ -56,7 +56,7 @@ export default function ProductForm({ initialData = {}, onSubmit, isLoading }) {
         setUploadingImages(prev => [...prev, false])
         
         // Добавляем новый ref для нового поля
-        additionalFileInputRefs.current.push(React.createRef())
+        additionalFileInputRefs.current.push(createRef())
     }
     
     // Удаление URL изображения
@@ -247,16 +247,8 @@ export default function ProductForm({ initialData = {}, onSubmit, isLoading }) {
                 
                 <div className="flex items-center space-x-4">
                     <input
-                        type="text"
-                        name="image_preview"
-                        value={formData.image_preview}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4438ca] focus:ring-[#4438ca]"
-                        placeholder="URL изображения или загрузите файл"
-                    />
-                    <input 
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg, image/png, image/gif, image/webp"
                         ref={previewFileInputRef}
                         onChange={handlePreviewUpload}
                         className="hidden"
@@ -265,10 +257,11 @@ export default function ProductForm({ initialData = {}, onSubmit, isLoading }) {
                         type="button"
                         onClick={() => previewFileInputRef.current.click()}
                         disabled={uploadingPreview}
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap rounded"
                     >
-                        {uploadingPreview ? 'Загрузка...' : 'Загрузить'}
+                        {uploadingPreview ? 'Загрузка...' : 'Загрузить изображение'}
                     </Button>
+                    <p className="text-sm text-gray-500">Допустимые форматы: JPG, PNG, GIF, WEBP</p>
                 </div>
                 
                 {formData.image_preview && (
@@ -288,7 +281,7 @@ export default function ProductForm({ initialData = {}, onSubmit, isLoading }) {
                 {errors.image_preview && <p className="mt-1 text-sm text-red-600">{errors.image_preview}</p>}
             </div>
             
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
                 <label className="block text-sm font-medium text-gray-700">
                     Дополнительные изображения
                 </label>
@@ -296,16 +289,9 @@ export default function ProductForm({ initialData = {}, onSubmit, isLoading }) {
                 {formData.image_urls && formData.image_urls.map((url, index) => (
                     <div key={index} className="space-y-2">
                         <div className="flex items-center space-x-2">
-                            <input
-                                type="text"
-                                value={url}
-                                onChange={(e) => handleImageUrlChange(index, e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#4438ca] focus:ring-[#4438ca]"
-                                placeholder="URL изображения или загрузите файл"
-                            />
                             <input 
                                 type="file"
-                                accept="image/*"
+                                accept="image/jpeg, image/png, image/gif, image/webp"
                                 onChange={(e) => handleAdditionalImageUpload(index, e)}
                                 className="hidden"
                                 ref={el => additionalFileInputRefs.current[index] = el}
@@ -314,10 +300,11 @@ export default function ProductForm({ initialData = {}, onSubmit, isLoading }) {
                                 type="button"
                                 onClick={() => additionalFileInputRefs.current[index].click()}
                                 disabled={uploadingImages[index]}
-                                className="whitespace-nowrap"
+                                className="whitespace-nowrap rounded"
                             >
-                                {uploadingImages[index] ? 'Загрузка...' : 'Загрузить'}
+                                {uploadingImages[index] ? 'Загрузка...' : 'Загрузить изображение'}
                             </Button>
+                            <p className="text-sm text-gray-500">Допустимые форматы: JPG, PNG, GIF, WEBP</p>
                             <button
                                 type="button"
                                 onClick={() => removeImageUrl(index)}
@@ -352,7 +339,7 @@ export default function ProductForm({ initialData = {}, onSubmit, isLoading }) {
                 >
                     Добавить еще изображение
                 </button>
-            </div>
+            </div> */}
         
             <div className="flex justify-end">
                 <Button
