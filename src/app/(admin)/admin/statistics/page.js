@@ -2,30 +2,30 @@
 import { useState, useEffect } from 'react'
 import axios from '@/lib/axios'
 import Loader from '@/components/Loader'
-import { 
-    Chart as ChartJS, 
-    CategoryScale, 
-    LinearScale, 
-    PointElement, 
-    LineElement, 
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
     BarElement,
-    Title, 
-    Tooltip, 
-    Legend, 
-    ArcElement 
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement
 } from 'chart.js'
 import { Line, Bar, Pie } from 'react-chartjs-2'
 import Link from 'next/link'
 
 // Register ChartJS components
 ChartJS.register(
-    CategoryScale, 
-    LinearScale, 
-    PointElement, 
-    LineElement, 
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
     BarElement,
-    Title, 
-    Tooltip, 
+    Title,
+    Tooltip,
     Legend,
     ArcElement
 )
@@ -138,30 +138,30 @@ const StatisticsPage = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-8">Статистика</h1>
-            
+
             <div className="mb-6">
                 <div className="flex space-x-4 mb-4">
-                    <button 
-                        onClick={() => setPeriod('week')} 
+                    <button
+                        onClick={() => setPeriod('week')}
                         className={`px-4 py-2 rounded ${period === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
                     >
                         Неделя
                     </button>
-                    <button 
-                        onClick={() => setPeriod('month')} 
+                    <button
+                        onClick={() => setPeriod('month')}
                         className={`px-4 py-2 rounded ${period === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
                     >
                         Месяц
                     </button>
-                    <button 
-                        onClick={() => setPeriod('year')} 
+                    <button
+                        onClick={() => setPeriod('year')}
                         className={`px-4 py-2 rounded ${period === 'year' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
                     >
                         Год
                     </button>
                 </div>
             </div>
-            
+
             {isLoading ? (
                 <div className="flex justify-center items-center h-64">
                     <Loader />
@@ -173,38 +173,38 @@ const StatisticsPage = () => {
             ) : stats ? (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <StatCard 
-                            title="Выручка" 
-                            value={`₽${stats.totalRevenue ? stats.totalRevenue.toLocaleString() : '0'}`} 
-                            change={stats.revenueChange || 0} 
-                            isPositive={(stats.revenueChange || 0) >= 0} 
+                        <StatCard
+                            title="Выручка"
+                            value={`₽${stats.totalRevenue ? stats.totalRevenue.toLocaleString() : '0'}`}
+                            change={stats.revenueChange || 0}
+                            isPositive={(stats.revenueChange || 0) >= 0}
                         />
-                        <StatCard 
-                            title="Заказы" 
-                            value={stats.totalOrders || 0} 
-                            change={stats.ordersChange || 0} 
-                            isPositive={(stats.ordersChange || 0) >= 0} 
+                        <StatCard
+                            title="Заказы"
+                            value={stats.totalOrders || 0}
+                            change={stats.ordersChange || 0}
+                            isPositive={(stats.ordersChange || 0) >= 0}
                         />
-                        <StatCard 
-                            title="Средний чек" 
-                            value={`₽${stats.averageOrderValue ? stats.averageOrderValue.toLocaleString() : '0'}`} 
-                            change={stats.aovChange || 0} 
-                            isPositive={(stats.aovChange || 0) >= 0} 
+                        <StatCard
+                            title="Средний чек"
+                            value={`₽${stats.averageOrderValue ? stats.averageOrderValue.toLocaleString() : '0'}`}
+                            change={stats.aovChange || 0}
+                            isPositive={(stats.aovChange || 0) >= 0}
                         />
-                        <StatCard 
-                            title="Новые пользователи" 
-                            value={stats.newUsers || 0} 
-                            change={stats.usersChange || 0} 
-                            isPositive={(stats.usersChange || 0) >= 0} 
+                        <StatCard
+                            title="Новые пользователи"
+                            value={stats.newUsers || 0}
+                            change={stats.usersChange || 0}
+                            isPositive={(stats.usersChange || 0) >= 0}
                         />
                     </div>
-                    
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                         <div className="bg-white rounded-lg shadow p-6">
                             <h2 className="text-xl font-semibold mb-4">Продажи</h2>
                             <div className="h-80">
-                                <Line 
-                                    data={salesData} 
+                                <Line
+                                    data={salesData}
                                     options={{
                                         responsive: true,
                                         maintainAspectRatio: false,
@@ -213,16 +213,16 @@ const StatisticsPage = () => {
                                                 beginAtZero: true
                                             }
                                         }
-                                    }} 
+                                    }}
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-lg shadow p-6">
                             <h2 className="text-xl font-semibold mb-4">Заказы</h2>
                             <div className="h-80">
-                                <Bar 
-                                    data={ordersData} 
+                                <Bar
+                                    data={ordersData}
                                     options={{
                                         responsive: true,
                                         maintainAspectRatio: false,
@@ -234,18 +234,18 @@ const StatisticsPage = () => {
                                                 }
                                             }
                                         }
-                                    }} 
+                                    }}
                                 />
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                         <div className="bg-white rounded-lg shadow p-6 lg:col-span-1">
-                            <h2 className="text-xl font-semibold mb-4">Товары по категориям</h2>
+                            <h2 className="text-xl font-semibold mb-4">Товары по Пользователям</h2>
                             <div className="h-80 flex items-center justify-center">
-                                <Pie 
-                                    data={categoriesData} 
+                                <Pie
+                                    data={categoriesData}
                                     options={{
                                         responsive: true,
                                         maintainAspectRatio: false,
@@ -254,11 +254,11 @@ const StatisticsPage = () => {
                                                 position: 'bottom'
                                             }
                                         }
-                                    }} 
+                                    }}
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
                             <h2 className="text-xl font-semibold mb-4">Топ товаров</h2>
                             <div className="overflow-x-auto">
@@ -276,8 +276,8 @@ const StatisticsPage = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
                                                         {product.image && (
-                                                            <img 
-                                                                src={product.image} 
+                                                            <img
+                                                                src={product.image}
                                                                 alt={product.name}
                                                                 className="h-10 w-10 object-cover rounded mr-3"
                                                             />
@@ -297,7 +297,7 @@ const StatisticsPage = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="bg-white rounded-lg shadow p-6">
                             <h2 className="text-xl font-semibold mb-4">Последние заказы</h2>
@@ -316,7 +316,7 @@ const StatisticsPage = () => {
                                         {stats.recentOrders.map((order, index) => (
                                             <tr key={index}>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <a 
+                                                    <a
                                                         href={`/admin/orders/${order.id}`}
                                                         className="text-indigo-600 hover:text-indigo-900"
                                                     >
@@ -337,7 +337,7 @@ const StatisticsPage = () => {
                                 </table>
                             </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-lg shadow p-6">
                             <h2 className="text-xl font-semibold mb-4">Новые пользователи</h2>
                             <div className="overflow-x-auto">
@@ -354,7 +354,7 @@ const StatisticsPage = () => {
                                             <tr key={index}>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <Link
-                                                    href={`/admin/users#${user.id}`} 
+                                                        href={`/admin/users#${user.id}`}
                                                         className="text-indigo-600 hover:text-indigo-900"
                                                     >
                                                         {user.name}
@@ -371,7 +371,7 @@ const StatisticsPage = () => {
                     </div>
                 </>
             ) : null
-        } 
+            }
         </div>
     )
 }
