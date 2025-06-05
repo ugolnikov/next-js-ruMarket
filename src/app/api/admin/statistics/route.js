@@ -51,7 +51,7 @@ export async function GET(request) {
                 items: true
             }
         })
-        
+        console.log(currentPeriodOrders)
         const previousPeriodOrders = await prisma.order.findMany({
             where: {
                 createdAt: {
@@ -67,7 +67,7 @@ export async function GET(request) {
         // Рассчитываем общую выручку
         const totalRevenue = currentPeriodOrders.reduce((sum, order) => 
             sum + Number(order.total_amount), 0)
-        
+        console.log(totalRevenue)
         const previousRevenue = previousPeriodOrders.reduce((sum, order) => 
             sum + Number(order.total_amount), 0)
         

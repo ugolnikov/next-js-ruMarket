@@ -242,7 +242,7 @@ const StatisticsPage = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                         <div className="bg-white rounded-lg shadow p-6 lg:col-span-1">
-                            <h2 className="text-xl font-semibold mb-4">Товары по Пользователям</h2>
+                            <h2 className="text-xl font-semibold mb-4">Товары по продавцам</h2>
                             <div className="h-80 flex items-center justify-center">
                                 <Pie
                                     data={categoriesData}
