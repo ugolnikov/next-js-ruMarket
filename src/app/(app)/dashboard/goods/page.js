@@ -89,7 +89,7 @@ export default function GoodsPage() {
                         {products.map(product => (
                             <div
                                 key={product.id}
-                                className="bg-white rounded-lg shadow-md overflow-hidden">
+                                className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col justify-between">
                                 <div className="h-84 relative">
                                     <ImageFallback
                                         src={product.image_preview}
