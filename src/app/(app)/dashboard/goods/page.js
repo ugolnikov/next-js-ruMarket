@@ -11,6 +11,8 @@ import 'swiper/css/pagination'
 import Modal from '@/components/Modal'
 import Header from '@/components/Header'
 import ImageFallback from '@/components/ImageFallback'
+import { motion, AnimatePresence } from 'framer-motion'
+
 
 export default function GoodsPage() {
     const router = useRouter()
@@ -87,6 +89,7 @@ export default function GoodsPage() {
     if (error) return <div className="text-center text-red-500">{error}</div>
     return (
         <>
+        
             <Header title="Управление товарами" />
             <div className="container mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-6">
@@ -101,10 +104,23 @@ export default function GoodsPage() {
                     <p>У вас нет товаров</p>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products.map(product => (
-                            <div
-                                key={product.id}
-                                className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col justify-between">
+                        <AnimatePresence>
+                        {products.map((product, index) => (
+                            <motion.div
+                            key={product.id}
+                            initial={{ opacity: 0, y: 30 }}
+                            exit={{ opacity: 0 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: '-50px' }}
+                            transition={{
+                                duration: 0.4,
+                                delay:
+                                    (index % 3) * 0.1 +
+                                    Math.floor(index / 3) * 0.1,
+                            }}
+                            className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col justify-between">
+                            
+                                
                                 <div className="h-84 relative">
                                     <ImageFallback
                                         src={product.image_preview}
@@ -152,8 +168,9 @@ export default function GoodsPage() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                                </motion.div>
                         ))}
+                        </AnimatePresence>
                     </div>
                 )}
                 <Modal
@@ -182,5 +199,7 @@ export default function GoodsPage() {
                     </p>
                 </Modal>
             </div>
-        </>)
+        
+        </>
+        )
 }

@@ -78,6 +78,11 @@ const Navigation = ({ user }) => {
                                         Редактирование товаров
                                     </NavLink>
                                     <NavLink
+                                        href="/dashboard/sales"
+                                        active={pathname === '/dashboard/sales'}>
+                                        Продажи
+                                    </NavLink>
+                                    <NavLink
                                         href="/dashboard/requests"
                                         active={pathname === '/dashboard/requests'}>
                                         Заявки
@@ -224,6 +229,11 @@ const Navigation = ({ user }) => {
                                     href="/dashboard/goods"
                                     active={pathname === '/dashboard/goods'}>
                                     Редактирование товаров
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href='/dashboard/sales'
+                                    active={pathname === '/dashboard/sales'}>
+                                    Продажи
                                 </ResponsiveNavLink>
                                 <ResponsiveNavLink
                                     href='/dashboard/requests'
