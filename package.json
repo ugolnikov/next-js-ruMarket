@@ -39,7 +39,8 @@
     "react-input-mask": "^2.0.4",
     "styled-components": "^6.1.13",
     "swiper": "^11.1.15",
-    "swr": "^2.2.5"
+    "swr": "^2.2.5",
+    "yet-another-react-lightbox": "^3.23.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.12.1",

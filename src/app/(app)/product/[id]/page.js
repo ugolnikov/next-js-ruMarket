@@ -1,4 +1,5 @@
 'use client'
+import * as React from "react";
 import { useAuth } from '@/hooks/auth'
 import { useState, useEffect } from 'react'
 import { use } from 'react'
@@ -8,6 +9,9 @@ import ImageFallback from '@/components/ImageFallback'
 import { useCart } from '@/hooks/cart'
 import FavoriteButton from '@/components/FavoriteButton'
 import AddToCartButton from '@/components/AddToCartButton'
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
 
 const loadProduct = async (id) => {
     try {
@@ -29,6 +33,7 @@ export default function Page({ params }) {
     const [isLoading, setIsLoading] = useState(true)
     const [isError, setIsError] = useState(false)
     const [notFound, setNotFound] = useState(false)
+    const [lightboxOpen, setLightboxOpen] = useState(false);
     
     const resolvedParams = use(params)
     const id = resolvedParams.id
@@ -92,21 +97,41 @@ export default function Page({ params }) {
     
     const parsed_description = product.full_description?.split("\n") || []
     return (
-        <div className="container mx-auto px-4 py-8 my-2">
+        <div className="container m-0 p-0 sm:mx-auto sm:px-4 sm:py-8 sm:my-2">
             <div 
                 data-testid="product-detail"
                 className="bg-white rounded-lg shadow-lg overflow-hidden"
             >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-2 sm:p-8">
                     <div className="relative w-full" style={{ height: '500px' }}>
-                        <ImageFallback
-                            src={imageUrl}
-                            alt={product.name}
-                            fill
-                            sizes='(100w) 100vw'
-                            priority={true}
-                            // style={{ objectFit: 'cover' }}
-                            className="rounded object-scale-down md:object-cover"
+                        <div
+                            className="w-full h-full cursor-zoom-in group"
+                            onClick={() => setLightboxOpen(true)}
+                            style={{ position: 'relative' }}
+                        >
+                            <ImageFallback
+                                src={imageUrl}
+                                alt={product.name}
+                                fill
+                                sizes='(100w) 100vw'
+                                priority={true}
+                                className="rounded object-cover transition-transform duration-200 sm:group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                <span className="bg-[#4438ca]/80 text-white px-4 py-2 rounded-lg text-lg font-semibold shadow-lg">Увеличить</span>
+                            </div>
+                        </div>
+                        <Lightbox
+                            open={lightboxOpen}
+                            close={() => setLightboxOpen(false)}
+                            slides={[{ src: imageUrl, alt: product.name }]}
+                            plugins={[Zoom]}
+                            animation={{ swipe: 400, fade: 200, zoom: 400, slide: 400 }}
+                            zoom={{ maxZoomPixelRatio: 4 }}
+                            render={{
+                                buttonPrev: () => null,
+                                buttonNext: () => null,
+                            }}
                         />
                     </div>
                     <div className="flex flex-col justify-between">
