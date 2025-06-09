@@ -144,3 +144,15 @@ enum user_role {
   seller
   admin
 }
+
+model SupportTicket {
+  id        BigInt    @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  email     String    @db.VarChar(255)
+  message   String
+  status    String    @default("open") @db.VarChar(32)
+  createdAt DateTime  @default(dbgenerated("timezone('utc'::text, now())")) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @default(dbgenerated("timezone('utc'::text, now())")) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("support_tickets")
+}

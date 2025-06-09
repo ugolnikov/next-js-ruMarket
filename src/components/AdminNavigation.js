@@ -12,7 +12,8 @@ import {
     XMarkIcon,
     ArrowLeftStartOnRectangleIcon,
     UserPlusIcon,
-    CogIcon
+    CogIcon,
+    ShieldExclamationIcon
 } from '@heroicons/react/24/outline'
 import ApplicationLogo from '@/components/ApplicationLogo'
 
@@ -24,6 +25,7 @@ const AdminNavigation = () => {
         { name: 'Панель управления', href: '/admin', icon: HomeIcon },
         { name: 'Статистика', href: '/admin/statistics', icon: ChartBarIcon },
         { name: 'Настройки', href: '/admin/settings', icon: CogIcon },
+        { name: 'Поддержка', href: '/admin/support', icon: ShieldExclamationIcon },
         { name: 'Пользователи', href: '/admin/users', icon: UsersIcon },
         { name: 'Верификация продавцов', href: '/admin/verifications', icon: UserPlusIcon },
         { name: 'Товары', href: '/admin/products', icon: ShoppingBagIcon },

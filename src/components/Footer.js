@@ -49,12 +49,12 @@ const Footer = () => {
                                     </h2>
                                     <ul className="text-gray-200 font-medium">
                                         <li className="mb-4">
-                                            <a href="#" className="hover:text-white hover:underline">
+                                            <a href="/faq" className="hover:text-white hover:underline">
                                                 FAQ
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" className="hover:text-white hover:underline">
+                                            <a href="/support" className="hover:text-white hover:underline">
                                                 Поддержка
                                             </a>
                                         </li>
@@ -66,12 +66,12 @@ const Footer = () => {
                                     </h2>
                                     <ul className="text-gray-200 font-medium">
                                         <li className="mb-4">
-                                            <a href="#" className="hover:text-white hover:underline">
+                                            <a href="/privacy" className="hover:text-white hover:underline">
                                                 Политика конфиденциальности
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" className="hover:text-white hover:underline">
+                                            <a href="/terms" className="hover:text-white hover:underline">
                                                 Условия использования
                                             </a>
                                         </li>
