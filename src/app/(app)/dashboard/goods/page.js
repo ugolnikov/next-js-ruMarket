@@ -122,6 +122,7 @@ export default function GoodsPage() {
                             
                                 
                                 <div className="h-84 relative">
+                                    <a href={`/product/${product.id}`}>
                                     <ImageFallback
                                         src={product.image_preview}
                                         alt={product.name}
@@ -133,6 +134,7 @@ export default function GoodsPage() {
                                         }}
                                         className="object-contain h-full w-full"
                                     />
+                                    </a>
 
                                 </div>
                                 <div className="p-4">
