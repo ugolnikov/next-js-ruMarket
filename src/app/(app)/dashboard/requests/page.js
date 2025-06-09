@@ -10,6 +10,7 @@ import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 import Modal from '@/components/Modal'
 import Header from '@/components/Header'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function RequestsPage() {
     const router = useRouter()
@@ -42,7 +43,6 @@ export default function RequestsPage() {
         }
     }
 
-
     const handleSend = async requestId => {
         setSelectedRequestId(requestId)
         setModalMessage('Вы уверены, что отправили этот товар?')
@@ -72,15 +72,14 @@ export default function RequestsPage() {
     if (loading) return <Loader />
     if (error) return <div className="text-center text-red-500">{error}</div>
     return (
-        // Update the table row to check item.is_send instead of request.is_send
-            <>
-                <Header title="Управление заявками" />
-                <div className="container mx-auto px-4 py-8">
+        <>
+            <Header title="Управление заявками" />
+            <div className="container mx-auto px-2 py-4 sm:px-4 sm:py-8">
                 {requests.length === 0 ? (
                     <p>У вас нет заявок</p>
                 ) : (
-                    <div className="container mx-auto p-4">
-                        <table className="min-w-full bg-white border border-gray-300">
+                    <div className="w-full overflow-x-auto">
+                        <table className="min-w-full bg-white border border-gray-300 hidden sm:table">
                             <thead>
                                 <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                                     <th className="py-3 px-6 text-left">Id</th>
@@ -94,8 +93,16 @@ export default function RequestsPage() {
                                 </tr>
                             </thead>
                             <tbody className="text-gray-600 text-sm font-light">
-                                {requests.map(request => (
-                                    <tr key={request.id} className="border-b border-gray-300 hover:bg-gray-100">
+                                <AnimatePresence>
+                                {requests.map((request, idx) => (
+                                    <motion.tr
+                                        key={request.id}
+                                        className="border-b border-gray-300 hover:bg-gray-100"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 20 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                    >
                                         <td className="py-3 px-6">{request.id}</td>
                                         <td className="py-3 px-6">{request.items[0].product.name}</td>
                                         <td className="py-3 px-6">{request.items[0].price}₽</td>
@@ -105,16 +112,58 @@ export default function RequestsPage() {
                                         <td className="py-3 px-6">{request.items[0].is_send ? (<span className='text-green-600'>Отправлен</span>) : (<span className='text-red-600'>Не отправлен</span>)}</td>
                                         {!request.items[0].is_send &&
                                         (<td className="py-3 px-6">
-                                            <Button
-                                                onClick={() => handleSend(request.id)}>
+                                            <motion.button
+                                                className='rounded bg-[#4438ca] hover:bg-[#19144d] text-white px-3 py-2 text-sm font-medium shadow'
+                                                whileHover={{ scale: 1.07 }}
+                                                whileTap={{ scale: 0.97 }}
+                                                onClick={() => handleSend(request.id)}
+                                            >
                                                 Отправить
-                                            </Button>
-                                        </td>)
-                                        }
-                                    </tr>
+                                            </motion.button>
+                                        </td>)}
+                                    </motion.tr>
                                 ))}
+                                </AnimatePresence>
                             </tbody>
                         </table>
+                        {/* Мобильная версия: карточки */}
+                        <div className="flex flex-col gap-4 sm:hidden">
+                            <AnimatePresence>
+                            {requests.map((request, idx) => (
+                                <motion.div
+                                    key={request.id}
+                                    className="bg-white rounded-lg shadow border border-gray-200 p-4 flex flex-col gap-2"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 20 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-semibold text-base">{request.items[0].product.name}</span>
+                                        <span className={request.items[0].is_send ? 'text-green-600' : 'text-red-600'}>
+                                            {request.items[0].is_send ? 'Отправлен' : 'Не отправлен'}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 text-sm text-gray-700">
+                                        <span>Цена: <b>{request.items[0].price}₽</b></span>
+                                        <span>Кол-во: <b>{request.items[0].quantity}</b></span>
+                                        <span>Итого: <b>{request.items[0].price * request.items[0].quantity}₽</b></span>
+                                    </div>
+                                    <div className="text-sm text-gray-700">Адрес: {request.address}</div>
+                                    {!request.items[0].is_send && (
+                                        <motion.button
+                                            className='rounded bg-[#4438ca] hover:bg-[#19144d] text-white px-4 py-2 text-base font-medium mt-2 shadow'
+                                            whileHover={{ scale: 1.07 }}
+                                            whileTap={{ scale: 0.97 }}
+                                            onClick={() => handleSend(request.id)}
+                                        >
+                                            Отправить
+                                        </motion.button>
+                                    )}
+                                </motion.div>
+                            ))}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 )}
                 <Modal
@@ -130,5 +179,6 @@ export default function RequestsPage() {
                     <p>{modalMessage}</p>
                 </Modal>
             </div>
-            </>)
+        </>
+    )
 }

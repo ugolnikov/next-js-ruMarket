@@ -21,6 +21,9 @@ export default function GoodsPage() {
     const [showModal, setShowModal] = useState(false)
     const [modalMessage, setModalMessage] = useState('')
     const [selectedProductId, setSelectedProductId] = useState(null)
+    const [publishModalOpen, setPublishModalOpen] = useState(false)
+    const [publishModalProduct, setPublishModalProduct] = useState(null)
+    const [publishModalAction, setPublishModalAction] = useState('')
 
     useEffect(() => {
         if (!user || user.role !== 'seller') {
@@ -67,11 +70,23 @@ export default function GoodsPage() {
         }
     }
 
+    const handlePublishModal = (product) => {
+        setPublishModalProduct(product)
+        setPublishModalAction(product.is_published ? 'unpublish' : 'publish')
+        setPublishModalOpen(true)
+    }
+
+    const confirmPublishToggle = async () => {
+        if (!publishModalProduct) return
+        await handlePublishToggle(publishModalProduct.id)
+        setPublishModalOpen(false)
+        setPublishModalProduct(null)
+    }
+
     if (loading) return <Loader />
     if (error) return <div className="text-center text-red-500">{error}</div>
     return (
         <>
-
             <Header title="Управление товарами" />
             <div className="container mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-6">
@@ -113,19 +128,9 @@ export default function GoodsPage() {
                                     </p>
                                     <div className="flex flex-col gap-2">
                                         <Button
-                                            onClick={() =>
-                                                handlePublishToggle(
-                                                    product.id,
-                                                    product.is_published,
-                                                )
-                                            }
-                                            className={`w-full rounded ${product.is_published
-                                                    ? 'bg-green-500'
-                                                    : 'bg-gray-500'
-                                                }`}>
-                                            {product.is_published
-                                                ? 'Опубликован'
-                                                : 'Черновик'}
+                                            onClick={() => handlePublishModal(product)}
+                                            className={`w-full rounded ${product.is_published ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500 hover:bg-gray-600'}`}>
+                                            {product.is_published ? 'Опубликован' : 'Черновик'}
                                         </Button>
                                         <div className="flex gap-2 w-full">
                                             <Button
@@ -134,14 +139,14 @@ export default function GoodsPage() {
                                                         `/dashboard/goods/edit/${product.id}`,
                                                     )
                                                 }
-                                                className="rounded bg-blue-500 w-1/2">
+                                                className="rounded bg-blue-500 hover:bg-blue-600 w-1/2">
                                                 Изменить
                                             </Button>
                                             <Button
                                                 onClick={() =>
                                                     handleDelete(product.id)
                                                 }
-                                                className="rounded bg-red-500 w-1/2">
+                                                className="rounded bg-red-500 hover:bg-red-900 w-1/2">
                                                 Удалить
                                             </Button>
                                         </div>
@@ -162,6 +167,19 @@ export default function GoodsPage() {
                             : undefined
                     }>
                     <p>{modalMessage}</p>
+                </Modal>
+                <Modal
+                    isOpen={publishModalOpen}
+                    onClose={() => setPublishModalOpen(false)}
+                    title={publishModalAction === 'publish' ? 'Опубликовать товар?' : 'Снять с публикации?'}
+                    onConfirm={confirmPublishToggle}
+                    actionType={publishModalAction}
+                >
+                    <p>
+                        {publishModalAction === 'publish'
+                            ? 'Вы уверены, что хотите опубликовать этот товар?'
+                            : 'Вы уверены, что хотите снять этот товар с публикации?'}
+                    </p>
                 </Modal>
             </div>
         </>)

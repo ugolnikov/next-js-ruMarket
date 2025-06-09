@@ -4,6 +4,7 @@ import '@/app/global.css'
 import { Providers } from './providers'
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/react"
+import ClientLayout from './ClientLayout'
 
 const nunitoFont = Nunito({
     subsets: ['latin'],
@@ -27,7 +28,9 @@ const RootLayout = ({ children }) => {
             <body className="antialiased">
                 <CookiesProvider>
                     <Providers>
-                        {children}
+                        <ClientLayout>
+                            {children}
+                        </ClientLayout>
                         <SpeedInsights />
                         <Analytics />
                     </Providers>

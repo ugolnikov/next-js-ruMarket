@@ -27,6 +27,11 @@ const Footer = () => {
                                     </h2>
                                     <ul className="text-gray-200 font-medium">
                                         <li className="mb-4">
+                                            <a href="#" onClick={() => window.dispatchEvent(new CustomEvent('show-welcome'))} className="hover:text-white hover:underline">
+                                                Титульная страница
+                                            </a>
+                                        </li>
+                                        <li>
                                             <a href="/" className="hover:text-white hover:underline">
                                                 Главная
                                             </a>

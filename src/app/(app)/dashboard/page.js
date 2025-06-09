@@ -12,6 +12,7 @@ import Link from 'next/link'
 import debounce from 'lodash/debounce'
 import { signOut } from 'next-auth/react';
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/solid' // Add heroicons if not present
+import Modal from '@/components/Modal'
 
 const Dashboard = () => {
     const { user, mutate, isLoading, updatePhone } = useAuth()
@@ -27,6 +28,8 @@ const Dashboard = () => {
     const [logoHover, setLogoHover] = useState(false)
     const [logoUploading, setLogoUploading] = useState(false)
     const fileInputRef = useRef(null)
+    const [roleModalOpen, setRoleModalOpen] = useState(false)
+    const [newRole, setNewRole] = useState('')
 
     // Создаем функцию debounce для поиска
     const debouncedSearch = useCallback(
@@ -124,27 +127,23 @@ const Dashboard = () => {
         }
     }
 
-    const changeRole = async () => {
-        try {
-            // Determine the new role based on current role
-            const newRole = user.role === 'customer' ? 'seller' : 'customer';
+    const handleRoleChange = (role) => {
+        setNewRole(role)
+        setRoleModalOpen(true)
+    }
 
+    const confirmRoleChange = async () => {
+        try {
             if (newRole === 'seller') {
-                // Check if user was previously approved as a seller
                 if (user.verification_status === 'approved') {
-                    // If already approved before, directly change role without verification
                     const response = await axios.put(`/api/dashboard/${user.id}`, {
                         role: newRole
                     });
-                    
                     mutate();
                 } else {
-                    // Redirect to verification page if not previously approved
                     router.push('/dashboard/verification');
                 }
-                return;
             } else {
-                // If changing back to customer, make the API call
                 const response = await axios.put(`/api/dashboard/${user.id}`, {
                     role: newRole
                 });
@@ -152,13 +151,13 @@ const Dashboard = () => {
                 if (response.data.signOut) {
                     signOut({ callbackUrl: '/login' });
                 }
-
                 mutate();
             }
+            setRoleModalOpen(false)
         } catch (error) {
             console.error('Error changing role:', error);
         }
-    };
+    }
 
     // Upload logo handler using supabaseStorage via /api/upload
     const handleLogoChange = async (e) => {
@@ -289,7 +288,7 @@ const Dashboard = () => {
                                         <Button
                                             className="text-sm rounded sm:!p-1"
                                             onClick={() =>
-                                                changeRole()
+                                                handleRoleChange('customer')
                                             }>
                                             Стать покупателем
                                         </Button>
@@ -305,9 +304,7 @@ const Dashboard = () => {
                                             <Button
                                                 className="text-sm rounded sm:!p-1"
                                                 onClick={() =>
-                                                    changeRole({
-                                                        url: '/api/change_role/seller',
-                                                    })
+                                                    handleRoleChange('seller')
                                                 }>
                                                 Стать продавцом
                                             </Button>)}
@@ -621,10 +618,23 @@ const Dashboard = () => {
                             </div>
                         </div>
                     ) : null}
-                </>
-            )
+
+            <Modal
+                isOpen={roleModalOpen}
+                onClose={() => setRoleModalOpen(false)}
+                title={`Сменить роль на ${newRole === 'seller' ? 'продавца' : 'покупателя'}?`}
+                onConfirm={confirmRoleChange}
+                actionType="delete"
+            >
+                <p>
+                    {newRole === 'seller' 
+                        ? 'Вы уверены, что хотите стать продавцом? Это действие потребует верификации.'
+                        : 'Вы уверены, что хотите стать покупателем? Это действие приведет к выходу из системы.'}
+                </p>
+            </Modal>
+        </>
+    )
 }
 
-
-            export default Dashboard
+export default Dashboard
 
