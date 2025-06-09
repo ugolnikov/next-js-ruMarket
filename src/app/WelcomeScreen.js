@@ -11,8 +11,8 @@ export default function WelcomeScreen({ onContinue }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.7 }}
+        className='min-h-[90vh] sm:min-h-[100vh]'
         style={{
-          minHeight: '100vh',
           width: '100vw',
           background: 'url(/grass-bg.jpg) repeat',
           display: 'flex',
@@ -46,7 +46,7 @@ export default function WelcomeScreen({ onContinue }) {
             ГБПОУ "Пермский краевой колледж &laquo;ОНИКС&raquo;"
           </motion.p>
           <motion.h1
-            className="text-3xl font-bold mb-4"
+            className="text-3xl font-bold mb-4 text-center"
             style={{ color: '#4438ca' }}
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
