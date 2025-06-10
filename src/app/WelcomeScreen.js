@@ -101,7 +101,7 @@ export default function WelcomeScreen({ onContinue }) {
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.07, backgroundColor: '#22c55e', color: '#fff' }}
             whileTap={{ scale: 0.97 }}
-            transition={{ delay: 1.2, duration: 0.3 }}
+            transition={{ delay: 0.6, duration: 0.3 }}
           >
             Перейти
           </motion.button>
