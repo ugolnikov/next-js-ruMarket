@@ -170,13 +170,13 @@ const ProductsManagement = () => {
         <div>
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold">Управление товарами</h1>
-                <Link
+                {/* <Link
                     href="/admin/products/new"
                     className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center"
                 >
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Добавить товар
-                </Link>
+                </Link> */}
             </div>
 
             <div className="mb-6">
