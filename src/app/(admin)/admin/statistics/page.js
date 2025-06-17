@@ -143,19 +143,19 @@ const StatisticsPage = () => {
                 <div className="flex space-x-4 mb-4">
                     <button
                         onClick={() => setPeriod('week')}
-                        className={`px-4 py-2 rounded ${period === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                        className={`px-4 py-2 rounded ${period === 'week' ? 'bg-[#4438ca] text-white' : 'bg-gray-200'}`}
                     >
                         Неделя
                     </button>
                     <button
                         onClick={() => setPeriod('month')}
-                        className={`px-4 py-2 rounded ${period === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                        className={`px-4 py-2 rounded ${period === 'month' ? 'bg-[#4438ca] text-white' : 'bg-gray-200'}`}
                     >
                         Месяц
                     </button>
                     <button
                         onClick={() => setPeriod('year')}
-                        className={`px-4 py-2 rounded ${period === 'year' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                        className={`px-4 py-2 rounded ${period === 'year' ? 'bg-[#4438ca] text-white' : 'bg-gray-200'}`}
                     >
                         Год
                     </button>
@@ -224,6 +224,7 @@ const StatisticsPage = () => {
                                 <Bar
                                     data={ordersData}
                                     options={{
+                                        backgroundColor: "#4438ca",
                                         responsive: true,
                                         maintainAspectRatio: false,
                                         scales: {
