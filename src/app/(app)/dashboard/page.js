@@ -582,7 +582,7 @@ const Dashboard = () => {
                                                                     Заказ #{order.orderNumber}
                                                                 </span>
                                                                 <span
-                                                                    className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
+                                                                    className={`px-3 py-1 text-nowrap rounded-full text-sm ${getStatusColor(
                                                                         order.status,
                                                                     )}`}>
                                                                     {getStatusText(order.status)}

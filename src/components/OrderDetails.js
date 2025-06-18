@@ -7,6 +7,9 @@ import Button from '@/components/Button'
 import { useRouter } from 'next/navigation'
 import Modal from '@/components/Modal'
 import ImageFallback from './ImageFallback'
+import Lightbox from "yet-another-react-lightbox";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import "yet-another-react-lightbox/styles.css";
 
 const loadOrder = async orderNumber => {
     const url = `/api/orders/${orderNumber}`
@@ -30,6 +33,8 @@ export default function OrderDetails({ orderNumber }) {
     const [showModal, setShowModal] = useState(false)
     const [modalMessage, setModalMessage] = useState('')
     const [showSuccess, setShowSuccess] = useState(false)
+    const [lightboxOpen, setLightboxOpen] = useState(false)
+    const [currentImage, setCurrentImage] = useState(null)
 
     useEffect(() => {
         // Check for success parameter in URL
@@ -171,6 +176,11 @@ export default function OrderDetails({ orderNumber }) {
         return 'Статус не определен'
     }
 
+    const openImageLightbox = (imageUrl, productName) => {
+        setCurrentImage({ src: imageUrl, alt: productName })
+        setLightboxOpen(true)
+    }
+
     return (
         <div className="container mx-auto px-4 py-8">
             {showSuccess && (
@@ -270,26 +280,48 @@ export default function OrderDetails({ orderNumber }) {
                                     key={item.id}
                                     className="flex items-center space-x-4 border-b border-gray-200 pb-4"
                                 >
-                                    <div className="flex-shrink-0 w-24 h-24 relative">
-                                        <ImageFallback
-                                            src={item.product.image_preview}
-                                            alt={item.product.name}
-                                            width={96}
-                                            height={96}
-                                            style={{ width: '100%', height: '100%' }}
-                                            className="object-cover rounded"
-                                        />
+                                    <div className="flex align-center justify-center items-center flex-shrink-0 w-24 h-24 relative">
+                                        <div
+                                            className="w-full h-full cursor-zoom-in group flex align-center justify-center items-center"
+                                            onClick={() => item.product && openImageLightbox(
+                                                item.product.image_preview || '/placeholder-image.jpg',
+                                                item.product.name || 'Товар удален'
+                                            )}
+                                            style={{ position: 'relative' }}
+                                        >
+                                            <ImageFallback
+                                                src={item.product?.image_preview || '/placeholder-image.jpg'}
+                                                alt={item.product?.name || 'Товар удален'}
+                                                width={96}
+                                                height={96}
+                                                style={{ width: '100%', height: '100%' }}
+                                                className="object-cover rounded transition-transform duration-200 group-hover:scale-105"
+                                            />
+                                            {item.product && (
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                    <span className="bg-black/50 text-white px-2 py-1 rounded text-xs font-medium">Увеличить</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-lg font-medium">
-                                            {item.product.name}
+                                            {item.product?.name || 'Товар удален'}
                                         </h3>
-                                        <p className="text-gray-600 hidden sm:block">
-                                        <b>Описание:</b> {item.product.description}
-                                        </p>
-                                        <p className="text-gray-600 hidden sm:block">
-                                        <b>Единица измерения:</b> {item.product.unit}
-                                        </p>
+                                        {item.product ? (
+                                            <>
+                                                <p className="text-gray-600 hidden sm:block">
+                                                    <b>Описание:</b> {item.product.description}
+                                                </p>
+                                                <p className="text-gray-600 hidden sm:block">
+                                                    <b>Единица измерения:</b> {item.product.unit}
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <p className="text-gray-500 italic">
+                                                Товар был удален из каталога
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="text-right">
                                         <p className="font-medium">
@@ -310,6 +342,19 @@ export default function OrderDetails({ orderNumber }) {
             >
                 <p className="text-red-600">{modalMessage}</p>
             </Modal>
+
+            <Lightbox
+                open={lightboxOpen}
+                close={() => setLightboxOpen(false)}
+                slides={currentImage ? [currentImage] : []}
+                plugins={[Zoom]}
+                animation={{ swipe: 400, fade: 200, zoom: 400, slide: 400 }}
+                zoom={{ maxZoomPixelRatio: 4 }}
+                render={{
+                    buttonPrev: () => null,
+                    buttonNext: () => null,
+                }}
+            />
         </div>
     )
 }
