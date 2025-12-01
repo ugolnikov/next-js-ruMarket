@@ -21,16 +21,14 @@ const ImageFallback = ({ src, fallbackSrc = '/images/placeholder.jpg', alt, clas
         : {}
 
     return (
-        <div 
-            className={`${props.className || ''}`} 
-            style={containerStyle}
-        >
+        <div className={`${props.className || ''}`} style={containerStyle}>
             {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                <div className="scale-50">
-                    <Loader />
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                    <div className="scale-50">
+                        {/* Компактный лоадер для изображений */}
+                        <Loader fullScreen={false} />
+                    </div>
                 </div>
-            </div>
             )}
             <Image
                 {...props}

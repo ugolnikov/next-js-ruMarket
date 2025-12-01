@@ -7,9 +7,15 @@ import Button from '@/components/Button'
 import { useRouter } from 'next/navigation'
 import Modal from '@/components/Modal'
 import ImageFallback from './ImageFallback'
-import Lightbox from "yet-another-react-lightbox";
-import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import "yet-another-react-lightbox/styles.css";
+import dynamic from 'next/dynamic'
+import 'yet-another-react-lightbox/styles.css'
+
+// Легковесный динамический импорт лайтбокса только на клиенте
+const Lightbox = dynamic(() => import('yet-another-react-lightbox'), {
+    ssr: false,
+})
+// Плагин zoom можно оставить обычным импортом, он относительно небольшой
+import Zoom from 'yet-another-react-lightbox/plugins/zoom'
 
 const loadOrder = async orderNumber => {
     const url = `/api/orders/${orderNumber}`
@@ -37,10 +43,12 @@ export default function OrderDetails({ orderNumber }) {
     const [currentImage, setCurrentImage] = useState(null)
 
     useEffect(() => {
+        if (typeof window === 'undefined') return
+
         // Check for success parameter in URL
         const urlParams = new URLSearchParams(window.location.search)
         setShowSuccess(urlParams.get('success') === 'true')
-        
+
         // Remove success parameter from URL without page reload
         if (urlParams.has('success')) {
             urlParams.delete('success')

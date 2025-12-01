@@ -17,7 +17,10 @@ const ImageWithLoader = ({ src, alt, width, height, className }) => {
 
     if (hasError) {
         return (
-            <div className={`flex items-center justify-center bg-gray-100 ${className}`} style={{width, height}}>
+            <div
+                className={`flex items-center justify-center bg-gray-100 ${className}`}
+                style={{ width, height }}
+            >
                 <span className="text-gray-500">Ошибка загрузки изображения</span>
             </div>
         )
@@ -28,7 +31,8 @@ const ImageWithLoader = ({ src, alt, width, height, className }) => {
             {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                     <div className="scale-50">
-                        <Loader />
+                        {/* Компактный лоадер, без min-h-screen */}
+                        <Loader fullScreen={false} />
                     </div>
                 </div>
             )}

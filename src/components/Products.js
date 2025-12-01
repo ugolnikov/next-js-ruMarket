@@ -170,15 +170,11 @@ const Products = ({ initialData }) => {
                     {products?.data?.map((product, index) => (
                         <motion.div
                             key={product.id}
-                            initial={{ opacity: 0, y: 30 }}
-                            exit={{ opacity: 0 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: '-50px' }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{
-                                duration: 0.4,
-                                delay:
-                                    (index % 3) * 0.1 +
-                                    Math.floor(index / 3) * 0.1,
+                                duration: 0.25,
+                                delay: Math.min(index * 0.03, 0.25),
                             }}
                             onClick={() => handleProductClick(product.id)}
                             className="relative">
