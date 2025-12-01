@@ -15,7 +15,6 @@ import CartIcon from '@/components/CartIcon'
 import Loader from '@/components/Loader'
 import { useCart } from '@/hooks/cart'
 import FavoritesIcon from '@/components/FavoritesIcon'
-import { motion, AnimatePresence } from 'framer-motion'
 
 const Navigation = ({ user }) => {
     const { logout } = useAuth()
@@ -36,83 +35,58 @@ const Navigation = ({ user }) => {
     // if (isLoading) return <Loader />
 
     return (
-        <AnimatePresence>
-            <motion.nav
-            // initial={{ y: -10, opacity: 0.5 }}
-            // animate={{ y: 0, opacity: 1 }}
-            initial={{ opacity: 0, y:-20 }}
-            animate={{ opacity: 1, y:0 }}
-            transition={{ duration: 0.5, ease: 'easeIn' }}
-            className="bg-white border-b border-gray-100"
-            >
-            {/* Primary Navigation Menu */}
+        <nav className="bg-white border-b border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex">
-                        {/* Logo */}
                         <div className="flex-shrink-0 flex items-center">
-                            <Link href="/" className='flex flex-row items-center gap-2'>
+                            <Link href="/" className="flex flex-row items-center gap-2">
                                 <ApplicationLogo className="block h-10 w-auto fill-current text-[#4438ca]" />
                                 <h1>ruMarket</h1>
                             </Link>
                         </div>
 
-                        {/* Navigation Links */}
-
                         <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                             <NavLink href="/" active={pathname === '/'}>
                                 Товары
                             </NavLink>
-                            {user ? (
-                                <NavLink
-                                    href="/dashboard"
-                                    active={pathname === '/dashboard'}>
+                            {user && (
+                                <NavLink href="/dashboard" active={pathname === '/dashboard'}>
                                     Личный кабинет
                                 </NavLink>
-                        ) : null}
-                            {user?.role === 'seller' && user?.is_verify ? (
+                            )}
+                            {user?.role === 'seller' && user?.is_verify && (
                                 <>
-                                    <NavLink
-                                        href="/dashboard/goods"
-                                        active={pathname === '/dashboard/goods'}>
+                                    <NavLink href="/dashboard/goods" active={pathname === '/dashboard/goods'}>
                                         Редактирование товаров
                                     </NavLink>
-                                    <NavLink
-                                        href="/dashboard/sales"
-                                        active={pathname === '/dashboard/sales'}>
+                                    <NavLink href="/dashboard/sales" active={pathname === '/dashboard/sales'}>
                                         Продажи
                                     </NavLink>
-                                    <NavLink
-                                        href="/dashboard/requests"
-                                        active={pathname === '/dashboard/requests'}>
+                                    <NavLink href="/dashboard/requests" active={pathname === '/dashboard/requests'}>
                                         Заявки
                                     </NavLink>
                                 </>
-                            ) : null}
-                            {user?.is_admin === true ? (
-                                <NavLink
-                                    href="/admin"
-                                    active={pathname === '/admin'}>
+                            )}
+                            {user?.is_admin === true && (
+                                <NavLink href="/admin" active={pathname === '/admin'}>
                                     Панель администратора
                                 </NavLink>
-                            ) : null}
+                            )}
                         </div>
                     </div>
 
-                    {/* Settings Dropdown */}
                     <div className="hidden sm:flex sm:items-center sm:ml-6 sm:gap-10">
                         {!user ? (
-                            <>
-                                <LoginLinks />
-                            </>
+                            <LoginLinks />
                         ) : (
                             <>
-                                {user?.role === 'customer' ? (
-                                    <> 
-                                    <FavoritesIcon data-testid="favorites-icon"/>
-                                    <CartIcon cartCount={cartCount} />
+                                {user?.role === 'customer' && (
+                                    <>
+                                        <FavoritesIcon data-testid="favorites-icon" />
+                                        <CartIcon cartCount={cartCount} />
                                     </>
-                                ) : null}
+                                )}
                                 <Dropdown
                                     align="right"
                                     width="48"
@@ -123,7 +97,8 @@ const Navigation = ({ user }) => {
                                                 <svg
                                                     className="fill-current h-4 w-4"
                                                     xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20">
+                                                    viewBox="0 0 20 20"
+                                                >
                                                     <path
                                                         fillRule="evenodd"
                                                         d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -132,8 +107,8 @@ const Navigation = ({ user }) => {
                                                 </svg>
                                             </div>
                                         </button>
-                                    }>
-                                    {/* Authentication */}
+                                    }
+                                >
                                     <DropdownButton onClick={logout}>
                                         Выход
                                     </DropdownButton>
@@ -142,16 +117,17 @@ const Navigation = ({ user }) => {
                         )}
                     </div>
 
-                    {/* Hamburger */}
                     <div className="-mr-2 flex items-center sm:hidden">
                         <button
-                            onClick={() => setOpen(open => !open)}
-                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
+                            onClick={() => setOpen(prev => !prev)}
+                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
+                        >
                             <svg
                                 className="h-6 w-6"
                                 stroke="currentColor"
                                 fill="none"
-                                viewBox="0 0 24 24">
+                                viewBox="0 0 24 24"
+                            >
                                 {open ? (
                                     <path
                                         className="inline-flex"
@@ -175,7 +151,6 @@ const Navigation = ({ user }) => {
                 </div>
             </div>
 
-            {/* Responsive Navigation Menu */}
             {open && (
                 <div className="block sm:hidden">
                     <div className="pt-2 pb-3 space-y-1">
@@ -185,75 +160,69 @@ const Navigation = ({ user }) => {
 
                         {!user ? (
                             <>
-                                <ResponsiveNavLink
-                                    href="/login"
-                                    active={pathname === '/login'}>
+                                <ResponsiveNavLink href="/login" active={pathname === '/login'}>
                                     Вход
                                 </ResponsiveNavLink>
-                                <ResponsiveNavLink
-                                    href="/register"
-                                    active={pathname === '/register'}>
+                                <ResponsiveNavLink href="/register" active={pathname === '/register'}>
                                     Регистрация
                                 </ResponsiveNavLink>
                             </>
                         ) : (
                             <>
-                                {user?.role === 'customer' ? (
-                                    <> 
-                                    <ResponsiveNavLink
-                                        href="/cart"
-                                        active={pathname === '/cart'}>
-                                        Корзина{' '}
-                                        {!cartCount ? (null) : (<span className="text-white px-2 py-1 bg-red-900 rounded">
-                                            {cartCount}
-                                        </span>)}
-                                        
-                                    </ResponsiveNavLink>
-                                    <ResponsiveNavLink
-                                    href="/dashboard/favorites"
-                                    active={pathname === '/dashboard/favorites'} data-testid="favorites-icon">
-                                        
-                                    Избранные{' '}
-                                    
-                                </ResponsiveNavLink>
-                                </>
-                                ) : null}
-                                <ResponsiveNavLink
-                                    href="/dashboard"
-                                    active={pathname === '/dashboard'}>
+                                {user?.role === 'customer' && (
+                                    <>
+                                        <ResponsiveNavLink href="/cart" active={pathname === '/cart'}>
+                                            Корзина{' '}
+                                            {cartCount ? (
+                                                <span className="text-white px-2 py-1 bg-red-900 rounded">
+                                                    {cartCount}
+                                                </span>
+                                            ) : null}
+                                        </ResponsiveNavLink>
+                                        <ResponsiveNavLink
+                                            href="/dashboard/favorites"
+                                            active={pathname === '/dashboard/favorites'}
+                                            data-testid="favorites-icon"
+                                        >
+                                            Избранные{' '}
+                                        </ResponsiveNavLink>
+                                    </>
+                                )}
+                                <ResponsiveNavLink href="/dashboard" active={pathname === '/dashboard'}>
                                     Личный кабинет
                                 </ResponsiveNavLink>
-                                {user?.role === 'seller' && user?.is_verify ? (
+                                {user?.role === 'seller' && user?.is_verify && (
                                     <>
-                                <ResponsiveNavLink
-                                    href="/dashboard/goods"
-                                    active={pathname === '/dashboard/goods'}>
-                                    Редактирование товаров
-                                </ResponsiveNavLink>
-                                <ResponsiveNavLink
-                                    href='/dashboard/sales'
-                                    active={pathname === '/dashboard/sales'}>
-                                    Продажи
-                                </ResponsiveNavLink>
-                                <ResponsiveNavLink
-                                    href='/dashboard/requests'
-                                    active={pathname === '/dashboard/requests'}>
-                                    Заявки
-                                </ResponsiveNavLink></>
-                                ) : (null)} 
-                                {user?.is_admin === true ? (
-                                    <ResponsiveNavLink
-                                        href="/admin"
-                                        active={pathname === '/admin'}>
+                                        <ResponsiveNavLink
+                                            href="/dashboard/goods"
+                                            active={pathname === '/dashboard/goods'}
+                                        >
+                                            Редактирование товаров
+                                        </ResponsiveNavLink>
+                                        <ResponsiveNavLink
+                                            href="/dashboard/sales"
+                                            active={pathname === '/dashboard/sales'}
+                                        >
+                                            Продажи
+                                        </ResponsiveNavLink>
+                                        <ResponsiveNavLink
+                                            href="/dashboard/requests"
+                                            active={pathname === '/dashboard/requests'}
+                                        >
+                                            Заявки
+                                        </ResponsiveNavLink>
+                                    </>
+                                )}
+                                {user?.is_admin === true && (
+                                    <ResponsiveNavLink href="/admin" active={pathname === '/admin'}>
                                         Панель администратора
                                     </ResponsiveNavLink>
-                                ) : null}
+                                )}
                             </>
                         )}
                     </div>
 
-                    {/* Responsive Settings Options */}
-                    {user ? (
+                    {user && (
                         <div className="pt-4 pb-1 border-t border-gray-200">
                             <div className="flex items-center px-4">
                                 <div className="flex-shrink-0">
@@ -262,7 +231,8 @@ const Navigation = ({ user }) => {
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 24 24"
-                                        stroke="currentColor">
+                                        stroke="currentColor"
+                                    >
                                         <path
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
@@ -283,17 +253,15 @@ const Navigation = ({ user }) => {
                             </div>
 
                             <div className="mt-3 space-y-1">
-                                {/* Authentication */}
                                 <ResponsiveNavButton onClick={logout}>
                                     Выход
                                 </ResponsiveNavButton>
                             </div>
                         </div>
-                    ) : null}
+                    )}
                 </div>
             )}
-                        </motion.nav>
-                        </AnimatePresence>
+        </nav>
     )
 }
 

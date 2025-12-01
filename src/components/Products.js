@@ -11,7 +11,7 @@ import ProductFilters from '@/components/ProductFilters'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 
-const Products = () => {
+const Products = ({ initialData }) => {
     const [currentPage, setCurrentPage] = useState(1)
     const [searchQuery, setSearchQuery] = useState('')
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
@@ -53,20 +53,32 @@ const Products = () => {
         setCurrentPage(1)
     }
 
+    const key = `/api/products?page=${currentPage}&search=${debouncedSearchQuery}&sort=${sortType}&priceRange=${priceRange}`
+
+    const shouldUseInitial =
+        initialData &&
+        currentPage === 1 &&
+        !debouncedSearchQuery &&
+        sortType === 'default' &&
+        priceRange === 'all'
+
     const {
         data: products,
         error,
         isLoading,
     } = useSWR(
-        `/api/products?page=${currentPage}&search=${debouncedSearchQuery}&sort=${sortType}&priceRange=${priceRange}`,
+        key,
         () =>
             axios
-                .get(
-                    `/api/products?page=${currentPage}&search=${debouncedSearchQuery}&sort=${sortType}&priceRange=${priceRange}`,
-                )
+                .get(key)
                 .then(res => res.data),
+        {
+            fallbackData: shouldUseInitial ? initialData : undefined,
+            revalidateOnMount: !shouldUseInitial,
+        },
     )
-    if (isLoading) return <Loader />
+
+    if (isLoading && !products) return <Loader />
     if (error) return <div>Ошибка загрузки товаров</div>
 
     return (

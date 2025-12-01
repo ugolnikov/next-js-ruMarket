@@ -1,16 +1,11 @@
 'use client'
-import { motion, AnimatePresence } from 'framer-motion'
 
 const Footer = () => {
 
     return (
-        <AnimatePresence>
-                <motion.footer
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.5, ease: 'easeOut' }}
-                    className="bg-[#4438ca] text-white"
-                >
+        <footer
+            className="bg-[#4438ca] text-white"
+        >
                     <div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
                         <div className="lg:flex lg:justify-between lg:gap-10">
                             <div className="mb-6 lg:mb-0">
@@ -99,8 +94,7 @@ const Footer = () => {
                             </div>
                         </div>
                     </div>
-                </motion.footer>
-        </AnimatePresence>
+                </footer>
     )
 }
 
