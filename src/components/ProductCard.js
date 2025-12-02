@@ -9,7 +9,8 @@ const ProductCard = ({ product }) => {
     const { user } = useAuth()
 
     return (
-        <div  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <div  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex
+    flex-col justify-between">
             <div className="relative">
                 <Link href={`/product/${product.id}`} className="block" data-testid="product-card">
                     <div className="relative w-full" style={{ height: '300px' }}>
@@ -29,7 +30,7 @@ const ProductCard = ({ product }) => {
                     </div>
                 )}
             </div>
-            <div className="p-4">
+            <div className="p-4 h-full flex flex-col justify-between">
                 <div className="mb-4">
                     <Link href={`/product/${product.id}`} className="block">
                         <h3 className="text-lg font-semibold text-gray-800 hover:text-[#4438ca] mb-2">
